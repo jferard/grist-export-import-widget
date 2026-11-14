@@ -1,38 +1,184 @@
-# Grist Export-Import Widget
+## Import/export
 
+Copyright 2026 DGFiP / DTNum / Fabrique Numérique
 
+Licensed under the Apache License, Version 2.0.
 
-## Getting Started
+> [!NOTE]
+> This Grist widget is an adaptation of the [Custom widget 
+> builder](https://github.com/gristlabs/grist-widget/blob/master/custom-widget-builder/README.md).
+> See original instructions below.
 
-To begin developing your custom widget, follow these steps:
+**This Grist widget aims to provide a convenient way to update Grist
+tools that are published as templates.**
 
-1. **Open the Widget Editor:** Click on the "Open configuration" button in the creator panel or clear the saved filter settings for the relevant tab.
-2. **Edit Code:** Write your widget's logic in the JavaScript tab and structure its appearance in the HTML tab.
-3. **Preview and Install:** Click the "Preview" button to see your widget in action. This will save the widget's code to the document's metadata.
-4. **Save Configuration:** Press the "Save" button to persist the widget settings to ensure they remain active after refreshing the page.
+When you provide a template, the users instantiate the template and get
+their own version of the tool. This means that several tools, coming
+from the same template, are now independent.
 
-**Note:** There is no autosave feature, so always remember to save your configuration manually.
+If you update the template, the modifications are not broadcasted to the
+documents. The users have to update their tool themselves: export the
+tables and the attachment, instantiate the new template, import manually
+the tables and fix what's now broken (the column names have changed,
+there is a new table...). They have to handle all the differences
+between the new tool and the old tool.
 
-## Data Storage
+This widget provides a raw export of the data, including the
+attachments.
 
-The widget's configuration data is stored in the widget's metadata using the following format:
+The import process is more subtle: you can simply import the data in the
+new document, or process the data : change a table name, change a column
+name, rewrite the records and so on... before importing. That's the
+role of the JavaScript code in the widget.
+
+See:
+[dsfr-example.js](https://github.com/jferard/grist-export-import-widget/dsfr-example.htm/dsfr-example.js)
+for a complete example.
+
+### Usage
+
+> [!IMPORTANT]
+> The document must have a "Meta" table, and the following
+>
+> - "TemplateId": the id of the tool (you may choose whatever you want)
+> - "Version": the current version
+
+The widget must be installed in the template.
+
+When a new version of the template is created, any instance of the old
+template can export the existing tables into an archive.
+
+Any instance of the new template can import the existing tables from the
+archive.
+
+### The export format
+
+The exports data in a ZIP archive:
+
+- the `attachment` directory contains a subdirectory (the number of
+  the attachment) for each attachment of the original document. This
+  subdirectory contains the file itself and a small JSON file with the
+  name and the type of the file.
+- the `table` directory contains a subdirectory (the table id) for
+  each table. This subdirectory contains the table as a JSON file (a raw
+  `fetchTable` result).
+
+#### JavaScript code
+
+You may extend the `DefaultArchiveExporter` and provide a 
+`getArchiveName` method to provide a more convenient name to the
+export.
+
+### The import
+
+The import will read the archive and apply some functions to the data.
+You simply need to inherit from the default classes to tailor the data
+to the new document format.
+
+#### The data
+
+You may extend the `DefaultArchiveImporter` and provide `before`,
+`prepareArchive` and `after` methods. The `prepareArchive` takes
+an `archive` argument, that is an object of type `Archive`, with the
+following in-place methods:
+
+- `filterRows(tableId, func)`
+- `mapRows(tableId, func)`
+- `renameCols(tableId, newNameByOldName)`
+- `removeCols(tableId, colNames)`
+- `renameTable(srcTableId, destTableId)`
+- `removeTable(srcTableId)`
+- `duplicateTable(curTableId, newTableId)`
+
+#### The output
+
+The default output is the browser console. Unless you use dev tools, you
+won't see anything. But you can provide a customized output, e.g. in a
+modal window. You have to provide a class:
 
 ```javascript
-const options = {
-    _installed: true,
-    _js: `...your JavaScript code...`,
-    _html: `...your HTML code...`,
-};
-grist.setOptions(options);
+    class DocumentOutput {
+      constructor(doc) {
+        // doc is the current widget
+      }
+
+      begin(title, info) {
+        // open the modal window with the title and a first information.
+      }
+
+      next(info) {
+        // add a new information
+      }
+
+      end() {
+        // close the modal window
+      }
+    }
 ```
 
-In the final widget, the <code>_html</code> field is inserted as is into an iframe, and the <code>_js</code> field is embedded within a script tag afterwards.
 
-This widget in itself doesn't require any access to documents metadata, but it can be used to create widgets that do. Storing <code>Javascript</code> and <code>HTML</code> code in the metadata stores it only temporarily. User needs to save it in order to persist the changes (just like for regular <code>filters</code>).
+### HTML
 
-Any contribution is welcome, the big thing missing is dark mode support.
-        
+The HTML code must have :
 
-## IntelliSense
+- An export button having the "export" id
+- An import input having the "import" id
 
-The widget editor supports `IntelliSense` for the `JavaScript` code. It does it by providing its own types definitions directly to the Monaco editor. The IntelliSense is based on the official Grist Plugin API. See the `genarate.js` script for more details.
+Thus, the minimal HTML body is:
+
+```html
+<button id="export" type="button">export</button>
+<input id="import" type="file">
+```
+
+But you can use more complex layout: see
+[dsfr-example.html](https://github.com/jferard/grist-export-import-widget/dsfr-example.html).
+
+## Original custom widget builder help
+
+### How to use this editor
+
+This editor allows you to write code for a custom widget and "install"
+it inside a Grist document.
+
+There are two tabs: **JavaScript** and **HTML**. The **JavaScript** tab
+is where you write code that interacts with the Grist plugin API, while
+the **HTML** tab is where you write the code that displays the results
+of the JavaScript code.
+
+### Modifying the Custom Widget
+
+To open the editor, click the `"Open configuration"` button in the
+creator panel or clear saved filter settings for this tab.
+
+### Installing the Custom Widget
+
+- When you click the `"Preview"` button, the widget (both the JavaScript
+  and HTML code) will be saved in the document's metadata, and the
+  editor will then replace itself with the widget you have created.
+- After installing the widget, you need to press the `"Save"` button and
+  save the configuration for a tab. It works similarly to saving filters
+  in Grist.
+
+**Note:** There is no autosave feature, so if you refresh the page
+without installing or saving, the widget content will be lost.
+
+### Note for Developers
+
+The widget's state is persisted in the widget's metadata as **JSON**,
+with content encoded as two properties: `_js` and `_html`.
+
+```javascript
+grist.setOptions({
+_installed: true, // Flat indicating that the widget is installed.
+_js: `...your js code....`,
+_html: `...your html code...`,
+});
+```
+
+In the final widget, the `_html` field is inserted as is into an iframe,
+and the `_js` field is embedded within a script tag afterwards.
+
+For more details on custom widget development, please refer to the
+[official Grist documentation](https://support.getgrist.com/widget-custom/).
+
