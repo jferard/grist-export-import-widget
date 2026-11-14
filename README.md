@@ -134,6 +134,9 @@ Thus, the minimal HTML body is:
 But you can use more complex layout: see
 [dsfr-example.html](https://github.com/jferard/grist-export-import-widget/blob/main/dsfr-example.html).
 
+> [!IMPORTANT]
+> Firefox: set <code>network.lna.blocking</code> to false for local testing (the widget must access localhost to retrieve attachments).
+
 ## Original custom widget builder help
 
 ### How to use this editor
