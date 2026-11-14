@@ -32,7 +32,7 @@ name, rewrite the records and so on... before importing. That's the
 role of the JavaScript code in the widget.
 
 See:
-[dsfr-example.js](https://github.com/jferard/grist-export-import-widget/dsfr-example.htm/dsfr-example.js)
+[dsfr-example.js](https://github.com/jferard/grist-export-import-widget/blob/main/dsfr-example.js)
 for a complete example.
 
 ### Usage
@@ -132,7 +132,7 @@ Thus, the minimal HTML body is:
 ```
 
 But you can use more complex layout: see
-[dsfr-example.html](https://github.com/jferard/grist-export-import-widget/dsfr-example.html).
+[dsfr-example.html](https://github.com/jferard/grist-export-import-widget/blob/main/dsfr-example.html).
 
 ## Original custom widget builder help
 
