@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <title>Import/export</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <script src="https://grist.numerique.gouv.fr/grist-plugin-api.js"></script>
+    <script src="exp_imp.js"></script>
+    <script src=" https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.15.4/dist/dsfr.module.min.js"></script>
+    <link href=" https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.15.4/dist/dsfr.min.css" rel="stylesheet">
+</head>
+<body>
+<div id="root" class="fr-grid-row fr-grid-row--gutters fr-mb-12v">
+    <div class="fr-col-12 fr-col-lg-4">
+        <h2>Exporter</h2>
+        <p>Pour une mise à jour, commencez par exporter les données depuis le fichier courant.</p>
+        <button id="export" class="fr-btn" type="button">
+            Exporter les données
+        </button>
+        <h2>Importer</h2>
+        <p>Pour une mise à jour, instanciez le nouveau modèle et importez les données exportées depuis l'ancien
+            document.</p>
+        <label class="fr-label" for="import">
+            Importer les données
+            <span class="fr-hint-text">Fichier ZIP exporté depuis l'ancienne version.</span>
+        </label>
+        <input id="import" class="fr-upload" aria-describedby="file-upload-messages" type="file" name="file-upload">
+        <div class="fr-messages-group" id="file-upload-messages" aria-live="polite"></div>
+    </div>
+</div>
+<dialog id="modal" class="fr-modal" aria-labelledby="titre" data-fr-concealing-backdrop="true">
+    <div class="fr-container fr-container--fluid fr-container-md">
+        <div class="fr-grid-row fr-grid-row--center">
+            <div class="fr-col-12 fr-col-md-8 fr-col-lg-6">
+                <div class="fr-modal__body">
+                    <div class="fr-modal__header">
+                        <button aria-controls="modal" title="Fermer" type="button" id="button-modal"
+                                class="fr-btn--close fr-btn">Fermer
+                        </button>
+                    </div>
+                    <div class="fr-modal__content">
+                        <h2 id="titre" class="fr-modal__title">
+                            <span class="fr-icon-info-line fr-icon--lg" aria-hidden="true"></span> Titre de la modale
+                        </h2>
+                        <ul id="info"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</dialog>
+</body>
+</html>
