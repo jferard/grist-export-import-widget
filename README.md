@@ -4,13 +4,17 @@ Copyright 2026 DGFiP / DTNum / Fabrique Numérique
 
 Licensed under the Apache License, Version 2.0.
 
+**This Grist widget aims to provide a convenient way to update Grist
+tools that are published as templates.**
+
+> [!TIP]
+> Direct link to the widget (URL to copy paste to Grist): `https://jferard.github.io/grist/export-import`
+
 > [!NOTE]
 > This Grist widget is an adaptation of the [Custom widget 
 > builder](https://github.com/gristlabs/grist-widget/blob/master/custom-widget-builder/README.md).
 > See original instructions below.
 
-**This Grist widget aims to provide a convenient way to update Grist
-tools that are published as templates.**
 
 When you provide a template, the users instantiate the template and get
 their own version of the tool. This means that several tools, coming
