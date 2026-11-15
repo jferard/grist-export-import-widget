@@ -13,14 +13,24 @@
 <body>
 <div id="root" class="fr-grid-row fr-grid-row--gutters fr-mb-12v">
     <div class="fr-col-12 fr-col-lg-4">
-        <h2>Exporter</h2>
-        <p>Pour une mise à jour, commencez par exporter les données depuis le fichier courant.</p>
+        <h2>Widget Export-import</h2>
+        <p>
+          Cet exemple montre comment configurer le code HTML et JavaScript pour obtenir un rendu
+          conforme au DSFR.
+        </p>
+        <p>
+          C'est un exemple minimal. Il n'y a aucun traitement avant l'import.
+          Si vous exportez puis importez, vous constaterez que les lignes sont doublonnées.
+          Les références sont cependant indépendantes et les images copiées.
+        </p>
+        <h3>Importer</h3>
+        <p>Le bouton "Exporter les données" s'utilise depuis le document à mettre à jour.
+          Il doit avoir l'attribut <code>id="export"</code>.</p>
         <button id="export" class="fr-btn" type="button">
             Exporter les données
         </button>
-        <h2>Importer</h2>
-        <p>Pour une mise à jour, instanciez le nouveau modèle et importez les données exportées depuis l'ancien
-            document.</p>
+        <h3>Importer</h3>
+        <p>Le bouton "Importer les données" s'utilise depuis un document vierge (vous venez juste d'instancer le nouveau modèle). Il doit avoir l'attribut <code>id="import"</code>.</p>
         <label class="fr-label" for="import">
             Importer les données
             <span class="fr-hint-text">Fichier ZIP exporté depuis l'ancienne version.</span>
