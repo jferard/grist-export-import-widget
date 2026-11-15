@@ -43,19 +43,14 @@ RAW_HTML = """
 RAW_JS = ""
 
 def build_single_page(dsfr: bool):
-    dir_path = Path(__file__).parent
-    # with (dir_path / "api.js").open("r", encoding="utf-8") as s:
-    #     api_js = s.read()
-    #     m = re.compile(r"const DEFAULT_HTML = `(.*?)`\.trim\(\);", re.DOTALL).search(api_js)
-    #     html = m.group(1)
-
-    with (dir_path / "exp_imp.js").open("r", encoding="utf-8") as s:
+    cur_path = Path(__file__).parent
+    with (cur_path / "exp_imp.js").open("r", encoding="utf-8") as s:
         imp_exp_js = s.read()
 
     if dsfr:
-        with (dir_path / "dsfr-example.html").open("r", encoding="utf-8") as s:
+        with (cur_path / "dsfr-example.html").open("r", encoding="utf-8") as s:
             html = s.read()
-        with (dir_path / "dsfr-example.js").open("r", encoding="utf-8") as s:
+        with (cur_path / "dsfr-example.js").open("r", encoding="utf-8") as s:
             js = s.read()
         filename = "dsfr_single_page.html"
     else:
@@ -82,6 +77,8 @@ def build_single_page(dsfr: bool):
 
 
     new_html = html.replace("<script src=\"exp_imp.js\"></script>", f"<script>{full_js}</script>")
+    with (cur_path / filename).open("w", encoding="utf-8") as d:
+        d.write(new_html)
 
 
 def check(custom_widget_builder_path: Path):
