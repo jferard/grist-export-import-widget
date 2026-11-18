@@ -31,7 +31,8 @@ class ArchiveExporter extends DefaultArchiveExporter {
 class ArchiveImporter extends DefaultArchiveImporter {
     static async create(docApi, modal) {
         const tokenInfo = await docApi.getAccessToken({readOnly: false});
-        return new ArchiveImporter(docApi, tokenInfo, modal);
+        const colInfoByColIdByTableId = await DefaultArchiveImporter.findColInfoByColIdByTableId(docApi);
+        return new ArchiveImporter(docApi, tokenInfo, modal, colInfoByColIdByTableId);
     }
 
     async prepareArchive(archive) {
