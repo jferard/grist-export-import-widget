@@ -1,22 +1,22 @@
 {
-  "name": "@berhalak/custom-widget-builder",
-  "description": "Editor for building widgets with HTML and JS inside Grist.",
-  "homePage": "https://github.com/gristlabs/grist-widget/tree/master/custom-widget-builder",
+  "name": "@jferard/export-import-widget",
+  "description": "Export import based on the Grist Custom Widget Builder.",
+  "homePage": "https://github.com/jferard/grist-export-import-widget",
   "version": "0.0.1",
   "grist": [
     {
       "name": "Custom widget builder",
-      "url": "https://gristlabs.github.io/grist-widget/custom-widget-builder/index.html",
-      "widgetId": "@berhalak/custom-widget-builder",
+      "url": "https://jferard.github.io/grist/export-import/index.html",
+      "widgetId": "@jferard/export-import-widget",
       "published": true,
       "accessLevel": "none",
       "renderAfterReady": true,
-      "description": "Build custom widgets with HTML and JavaScript, right inside Grist.",
+      "description": "Export import based on the Grist Custom Widget Builder.",
       "isGristLabsMaintained": false,
       "authors": [
         {
-          "name": "berhalak",
-          "url": "https://github.com/berhalak"
+          "name": "jferard",
+          "url": "https://github.com/jferard"
         }
       ]
     }
