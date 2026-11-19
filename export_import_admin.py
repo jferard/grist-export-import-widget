@@ -44,7 +44,7 @@ RAW_JS = ""
 
 def build_single_page(dsfr: bool):
     cur_path = Path(__file__).parent
-    with (cur_path / "exp_imp.js").open("r", encoding="utf-8") as s:
+    with (cur_path / "built/exp_imp.js").open("r", encoding="utf-8") as s:
         imp_exp_js = s.read()
 
     if dsfr:
@@ -100,9 +100,11 @@ def build_pages(pages_path: Path):
     build_single_page(False)
     for name in (
         "api.js", "api_deps.js", "index.html",
-        "exp_imp.js",
     ):
         shutil.copyfile(cur_path / name, pages_path / name)
+
+    for p in (cur_path / "built").glob("*.js"):
+        shutil.copyfile(p, pages_path / p.name)
 
 
 if __name__ == "__main__":
