@@ -13,30 +13,63 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-// monkey patching FF < 144
-if (Map.prototype.getOrInsert === undefined) {
-    Map.prototype.getOrInsert = function (key, value) {
-        if (this.has(key)) {
-            return this.get(key);
-        } else {
-            this.set(key, value);
-            return value;
-        }
+import {ZipWriter, openZip, ZipRandomAccessReader} from "web-jszipp";
+import CellValue = grist.CellValue;
+import TableData = grist.TableData;
+import RowRecord = grist.RowRecord;
+import UserAction = grist.UserAction;
+
+function getOrInsert<K, V>(map: Map<K, V>, key: K, value: V): V {
+    if (map.has(key)) {
+        return map.get(key)!;
+    } else {
+        map.set(key, value);
+        return value;
     }
+}
+
+type GristColInfo = {
+    colType: string
+    isFormula: boolean
+    hasTriggerFormula: boolean
+};
+
+type GristListValue = [string, ...number[]];
+type GristListValueOrNull = GristListValue | null;
+
+type ExpImpImportOptions = {
+    ignoreMeta: boolean
+    ignoreExtraTables: boolean
+    ignoreMissingCols: boolean
+    ignoreFormulas: boolean
+}
+
+type ExpImpAttachmentData = {
+    name: string
+    type: string
+    bytes: any
 }
 
 const META_TABLE = "Meta";
 const COL_VERSION = "Version";
 const COL_TEMPLATE_ID = "TemplateId";
 
-class ConsoleOutput {
-    begin(title, info) {
+interface Output {
+    begin(title: string, info?: string): void;
+    next(info: string): void;
+    end(): void;
+}
+
+class ConsoleOutput implements Output {
+    begin(title: string, info?: string) {
         console.info("> begin output")
         console.info(`tìtle: ${title}`);
-        this.next(info);
+        if (info !== undefined) {
+            this.next(info);
+        }
     }
 
-    next(info) {
+    next(info: string) {
         if (info !== undefined) {
             console.info(`* info: ${info}`);
         }
@@ -48,24 +81,25 @@ class ConsoleOutput {
 }
 
 class DefaultArchiveCreator {
-    constructor(docApi, jszipp, output) {
+    docApi: grist.GristDocAPI
+    output: ConsoleOutput
+
+    constructor(docApi: grist.GristDocAPI, output: ConsoleOutput) {
         /*
          * @param {Object} docApi - the grist doc API
-         * @param {Object} jszipp - the JSZip module
          */
         this.docApi = docApi;
-        this.jszipp = jszipp;
         this.output = output;
     }
 
-    async create() {
+    async create(): Promise<Blob> {
         /*
          * Create the exporter
          *
          * @param {Object} docApi - the grist doc API
          */
         console.info("Creating archive...");
-        const writer = new this.jszipp.ZipWriter({outputAs: "blob"});
+        const writer = new ZipWriter({outputAs: "blob"});
 
         this.output.next("Ajout des tables")
         await this.#addTables(writer);
@@ -75,7 +109,7 @@ class DefaultArchiveCreator {
         return await writer.close();
     }
 
-    async #addTables(writer) {
+    async #addTables(writer: ZipWriter<"blob">) {
         /*
          * Add tables to zip
          *
@@ -91,7 +125,7 @@ class DefaultArchiveCreator {
         console.info("Tables %s ajoutées", tablesIds);
     }
 
-    async #addAttachments(writer) {
+    async #addAttachments(writer: ZipWriter<"blob">) {
         /*
          * Add attachments to zip
          *
@@ -102,16 +136,21 @@ class DefaultArchiveCreator {
 
         const tokenInfo = await this.docApi.getAccessToken({readOnly: true});
 
-        const addedAttachmentIds = new Set();
+        const addedAttachmentIds = new Set<number>();
         for (let [tableId, colsIds] of colsIdsByTableId) {
             const table = await this.docApi.fetchTable(tableId);
             for (const colId of colsIds) {
-                for (let attachmentsIds of table[colId]) {
-                    if (attachmentsIds === null) {
+                let col = table[colId];
+                for (let attachmentsIds of col) {
+                    if (attachmentsIds === null || attachmentsIds === undefined) {
+                        continue;
+                    }
+                    if (!Array.isArray(attachmentsIds)) {
+                        console.error(`Value ${attachmentsIds} is not an array`);
                         continue;
                     }
 
-                    for (let attachmentId of attachmentsIds.slice(1)) {
+                    for (let attachmentId of (attachmentsIds as number[]).slice(1)) {
                         if (addedAttachmentIds.has(attachmentId)) {
                             continue;
                         }
@@ -156,11 +195,11 @@ class DefaultArchiveCreator {
         const colsIdsByTableId = new Map();
         const gristColumns = await this.docApi.fetchTable("_grist_Tables_column");
         const gristTables = await this.docApi.fetchTable("_grist_Tables");
-        gristColumns.parentId.forEach((parentId, index) => {
+        gristColumns.parentId.forEach((parentId: CellValue, index: number, _arr: CellValue[]) => {
             if (gristColumns.type[index] === "Attachments") {
-                const tableIndex = gristTables.id.findIndex((id) => id === parentId);
+                const tableIndex = gristTables.id.findIndex((id: number) => id === (parentId as number)) ;
                 const tableId = gristTables.tableId[tableIndex];
-                const colsIds = colsIdsByTableId.getOrInsert(tableId, []);
+                const colsIds = getOrInsert(colsIdsByTableId, tableId, []);
                 colsIds.push(gristColumns.colId[index]);
             }
         });
@@ -173,21 +212,23 @@ class DefaultArchiveCreator {
          */
         // TODO : take also timeUpload + new Date(timestamp);
         // The date info might be useful
-        const attachmentNameById = new Map();
+        const attachmentNameById = new Map<number, string>();
         const gristAttachments = await this.docApi.fetchTable("_grist_Attachments");
-        gristAttachments.id.forEach((id, index) => {
-            attachmentNameById.set(id, gristAttachments.fileName[index]);
+        gristAttachments.id.forEach((id: number, index: number, _arr: number[]) => {
+            attachmentNameById.set(id, gristAttachments.fileName[index] as string);
         });
         return attachmentNameById;
     }
 }
 
 class DefaultArchiveExporter {
-    constructor(output) {
+    output: Output;
+
+    constructor(output: Output) {
         this.output = output;
     }
 
-    async exportArchive(zipContent) {
+    async exportArchive(zipContent: Blob) {
         this.output.next("Export...");
         const suggestedName = this.getArchiveName();
         this.#download(zipContent, suggestedName);
@@ -198,7 +239,7 @@ class DefaultArchiveExporter {
         return `export_${dateStr}.zip`;
     }
 
-    #download(zipContent, suggestedName) {
+    #download(zipContent: Blob, suggestedName: string) {
         /*
          * @param {Object} zipContent - the zip as blob
          * @returns {String} suggestedName -> the zip name
@@ -219,7 +260,17 @@ class DefaultArchiveExporter {
 }
 
 class Archive {
-    constructor(tableById, attachmentDataById) {
+    tableById: Map<string, TableData>
+    attachmentDataById: Map<number, ExpImpAttachmentData>
+    importOptions: ExpImpImportOptions = {
+        "ignoreMeta": true, // ignore the Meta table from the archive
+        "ignoreExtraTables": true, // ignore tables from the archive that are not in the document
+        "ignoreMissingCols": true, // ignore cols from the document that are not in the archive
+        "ignoreFormulas": true, // // ignore the formula cols from the archive
+
+    }
+
+    constructor(tableById: Map<string, any>, attachmentDataById: Map<number, ExpImpAttachmentData>) {
         this.tableById = tableById;
         this.attachmentDataById = attachmentDataById;
 
@@ -231,16 +282,19 @@ class Archive {
         }
     }
 
-    get version() {
+    get version(): string {
         return this.meta[COL_VERSION];
     }
 
-    get templateId() {
+    get templateId(): string {
         return this.meta[COL_TEMPLATE_ID];
     }
 
-    get meta() {
+    get meta(): {[k: string]: any} {
         let meta = this.tableById.get(META_TABLE);
+        if (meta === undefined) {
+            throw new Error("Meta table not found");
+        }
         return Object.fromEntries(
             Object.entries(meta)
                 .map(([key, values]) => [key, values[0]])
@@ -252,45 +306,61 @@ class Archive {
     }
 
     tableEntries() {
-        return this.tableById.entries().filter((tableId, _table) => tableId !== META_TABLE);
+        return this.tableById.entries().filter(([tableId, _table], _tableIdx) => tableId !== META_TABLE);
     }
 
     // begin user funcs
-    filterRows(tableId, func) {
+    filterRows(tableId: string, func: (row: grist.RowRecord) => boolean) {
         const table = this.tableById.get(tableId);
+        if (table === undefined) {
+            console.warn(`Table ${tableId} not found`);
+            return;
+        }
         const rows = this.#tableToRows(table);
         const newRows = rows.filter((row) => func(row))
         const newTable = this.#rowsToTable(newRows);
         this.tableById.set(tableId, newTable);
     }
 
-    mapRows(tableId, func) {
+    mapRows(tableId: string, func: (row: grist.RowRecord) => grist.RowRecord) {
         const table = this.tableById.get(tableId);
+        if (table === undefined) {
+            console.warn(`Table ${tableId} not found`);
+            return;
+        }
         const rows = this.#tableToRows(table);
         const newRows = rows.map((row) => func(row))
         const newTable = this.#rowsToTable(newRows);
         this.tableById.set(tableId, newTable);
     }
 
-    renameCols(tableId, newNameByOldName) {
+    renameCols(tableId: string, newNameByOldName: {[k: string]: string}) {
         const table = this.tableById.get(tableId);
+        if (table === undefined) {
+            console.warn(`Table ${tableId} not found`);
+            return;
+        }
 
-        const newTable = {};
+        const newTable: TableData = { id: [] };
         const keys = Object.keys(table);
         keys.forEach((key) => {
-            let newKey = newNameByOldName.get(key);
+            let newKey = newNameByOldName[key];
             if (newKey === undefined) {
-                newKey = key
+                newKey = key;
             }
             newTable[newKey] = table[key];
         })
         this.tableById.set(tableId, newTable);
     }
 
-    removeCols(tableId, colNames) {
+    removeCols(tableId: string, colNames: string[]) {
         const table = this.tableById.get(tableId);
+        if (table === undefined) {
+            console.warn(`Table ${tableId} not found`);
+            return;
+        }
 
-        const newTable = {};
+        const newTable: TableData = { id: [] };
         const keys = Object.keys(table);
         keys.forEach((key) => {
             if (!colNames.includes(key)) {
@@ -300,37 +370,50 @@ class Archive {
         this.tableById.set(tableId, newTable);
     }
 
-    renameTable(srcTableId, destTableId) {
+    renameTable(srcTableId: string, destTableId: string) {
         const table = this.tableById.get(srcTableId);
+        if (table === undefined) {
+            console.warn(`Table ${srcTableId} not found`);
+            return;
+        }
+
         this.tableById.delete(srcTableId);
         this.tableById.set(destTableId, table);
     }
 
-    removeTable(srcTableId) {
+    removeTable(srcTableId: string) {
         this.tableById.delete(srcTableId);
     }
 
-    duplicateTable(curTableId, newTableId) {
+    duplicateTable(curTableId: string, newTableId: string) {
         const table = this.tableById.get(curTableId);
+        if (table === undefined) {
+            console.warn(`Table ${curTableId} not found`);
+            return;
+        }
+
         this.tableById.set(newTableId, structuredClone(table));
     }
 
     // end user funcs
 
-    #tableToRows(table) {
+    #tableToRows(table: TableData): grist.RowRecord[] {
         let keys = Object.keys(table);
-        const rows = Array();
-        table.id.forEach((id, index) => {
+        const rows: grist.RowRecord[] = Array();
+        table.id.forEach((_id: number, index: number, _arr: number[]) => {
             const row = Object.fromEntries(keys.map((k) => [k, table[k][index]]))
-            rows.push(row);
+            rows.push(row as grist.RowRecord);
         })
         return rows;
     }
 
-    #rowsToTable(rows) {
+    #rowsToTable(rows: grist.RowRecord[]): TableData {
         console.assert(rows.length > 0)
-        const table = {}
+        const table: TableData = { id: [] }
         const keys = Object.keys(rows[0]);
+        if (!("id" in keys)) {
+            throw new Error(`key id not found in "${keys}"`);
+        }
         keys.forEach((key) => {
             table[key] = [];
         });
@@ -344,23 +427,24 @@ class Archive {
 }
 
 class DefaultArchiveReader {
-    constructor(jszipp, output) {
-        this.jszipp = jszipp;
+    output: any
+
+    constructor(output: Output) {
         this.output = output;
     }
 
-    async readFromEvent(event) {
+    async readFromEvent(event: Event): Promise<Archive|null> {
         this.output.next("Lecture depuis la balise 'input'")
         console.log("Read...");
 
         const file = this.#getFile(event);
         if (file === null) {
-            return;
+            return null;
         }
         this.output.next(`Fichier : ${file.name}`);
 
         try {
-            const zip = await this.jszipp.openZip(file, {
+            const zip = await openZip(file, {
                 pathMode: "strict-package",
                 maxArchiveSize: 50 * 1024 * 1024,
                 maxEntrySize: 10 * 1024 * 1024
@@ -368,10 +452,11 @@ class DefaultArchiveReader {
             return await this.readZip(zip);
         } catch (error) {
             this.importErr(error);
+            return null;
         }
     }
 
-    #getFile(event) {
+    #getFile(event: Event): File | null {
         /*
          * @param {Object} event - the event from input
          * @returns the file name
@@ -380,7 +465,7 @@ class DefaultArchiveReader {
         if (input === null) {
             return null;
         }
-        const files = input.files;
+        const files = (input as HTMLInputElement).files;
         if (files === null || files.length === 0) {
             return null;
         }
@@ -388,9 +473,9 @@ class DefaultArchiveReader {
         return files[0];
     }
 
-    async readZip(zip) {
-        const tableById = new Map();
-        const attachmentDataById = new Map();
+    async readZip(zip: ZipRandomAccessReader) {
+        const tableById = new Map<string, string>();
+        const attachmentDataById = new Map<number, ExpImpAttachmentData>();
         for (const entry of zip.entries) {
             const path = entry.path;
             let arr = path.split("/");
@@ -409,11 +494,11 @@ class DefaultArchiveReader {
                 tableById.set(tableId, data);
             } else if (type === "attachment" && arr.length === 3) {
                 const attachmentId = parseInt(arr[1]);
-                if (isNaN(attachmentId)) {
-                    console.error("Wrong attachmentId", path);
+                if (Number.isNaN(attachmentId)) {
+                    console.error("Weird entry", path)
                     continue;
                 }
-                const attachmentData = attachmentDataById.getOrInsert(attachmentId, {});
+                const attachmentData = getOrInsert(attachmentDataById, attachmentId, { name: "", type: "", bytes: [] });
                 if (arr[2] === "meta.json") {
                     const data = await this.#getJSONData(zip, path);
                     if (data === null) {
@@ -436,7 +521,7 @@ class DefaultArchiveReader {
         return new Archive(tableById, attachmentDataById);
     }
 
-    async #getJSONData(zip, path) {
+    async #getJSONData(zip: ZipRandomAccessReader, path: string) {
         /*
          * @param {Object} zip - the zip
          * @param {String} path - the path
@@ -454,7 +539,7 @@ class DefaultArchiveReader {
         }
     }
 
-    importErr(error) {
+    importErr(error: any) {
         /* Error when reading ZIP file */
         window.alert("Can't read zip file");
         console.error("Can't read zip file", error);
@@ -462,31 +547,31 @@ class DefaultArchiveReader {
 }
 
 class DefaultArchiveImporter {
-    static async create(docApi, output) {
+    static async create(docApi: grist.GristDocAPI, output: Output) {
         const tokenInfo = await docApi.getAccessToken({readOnly: false});
         const colInfoByColIdByTableId = await DefaultArchiveImporter.findColInfoByColIdByTableId(docApi);
         return new DefaultArchiveImporter(docApi, tokenInfo, output, colInfoByColIdByTableId);
     }
 
-    static async findColInfoByColIdByTableId(docApi) {
+    static async findColInfoByColIdByTableId(docApi: grist.GristDocAPI) {
         /*
          * Analyse the current document.
          * @param {Object} docApi - the grist doc API
          * @returns {Map} tableId -> colId -> colType
          */
-        const colTypeByColIdByTableId = new Map();
+        const colTypeByColIdByTableId = new Map<string, Map<string, GristColInfo>>();
         const gristColumns = await docApi.fetchTable("_grist_Tables_column");
         const gristTables = await docApi.fetchTable("_grist_Tables");
-        gristColumns.parentId.forEach((parentId, index) => {
-            const tableIndex = gristTables.id.findIndex((id) => id === parentId);
+        gristColumns.parentId.forEach((parentId: CellValue, index: number, _arr: CellValue[]) => {
+            const tableIndex = gristTables.id.findIndex((id: number) => id === (parentId as number));
             const tableId = gristTables.tableId[tableIndex];
-            const colTypeByColId = colTypeByColIdByTableId.getOrInsert(tableId, new Map());
-            const colId = gristColumns.colId[index];
-            const colType = gristColumns.type[index];
-            const isFormula = gristColumns.isFormula[index];
-            const formula = gristColumns.formula[index];
+            const colTypeByColId = getOrInsert(colTypeByColIdByTableId, tableId, new Map());
+            const colId = gristColumns.colId[index] as number;
+            const colType = gristColumns.type[index] as string;
+            const isFormula = gristColumns.isFormula[index] as boolean;
+            const formula = gristColumns.formula[index] as string;
             const hasTriggerFormula = !isFormula && formula !== "";
-            let colInfo = {
+            let colInfo: GristColInfo = {
                 "colType": colType,
                 "isFormula": isFormula,
                 "hasTriggerFormula": hasTriggerFormula
@@ -496,14 +581,19 @@ class DefaultArchiveImporter {
         return colTypeByColIdByTableId;
     }
 
-    constructor(docApi, tokenInfo, output, colInfoByColIdByTableId) {
+    docApi: grist.GristDocAPI
+    tokenInfo: grist.AccessTokenResult
+    output: Output
+    colInfoByColIdByTableId: Map<string, Map<string, GristColInfo>>
+
+    constructor(docApi: grist.GristDocAPI, tokenInfo: grist.AccessTokenResult, output: Output, colInfoByColIdByTableId: Map<string, Map<string, GristColInfo>>) {
         this.docApi = docApi;
         this.tokenInfo = tokenInfo;
         this.output = output;
         this.colInfoByColIdByTableId = colInfoByColIdByTableId;
     }
 
-    async importArchive(archive) {
+    async importArchive(archive: Archive) {
         /*
          * Basic function that simply import the data.
          */
@@ -519,11 +609,11 @@ class DefaultArchiveImporter {
         await this.after(archive);
     }
 
-    async before(archive) {
+    async before(archive: Archive) {
         // do nothing
     }
 
-    async prepareArchive(archive) {
+    async prepareArchive(archive: Archive) {
         // just check id and version...
         const curTemplateId = await this.getCurTemplateId();
         const curVersion = await this.getCurVersion();
@@ -534,17 +624,17 @@ class DefaultArchiveImporter {
         // ...and do nothing
     }
 
-    async after(archive) {
+    async after(archive: Archive) {
         // do nothing
     }
 
-    async #writeArchive(archive) {
+    async #writeArchive(archive: Archive) {
         this.output.next("Écriture des tables (sans les références)");
         const addActions = await this.#buildAddActions(archive);
         const result = await this.docApi.applyUserActions(addActions);
         console.info(`Actions: ${addActions.length} tables added`)
 
-        const newIdsByTableId = this.buildNewIdsByTableId(addActions, result.retValues);
+        const newIdsByTableId = this.buildNewIdsByTableId(addActions, result.retValues as number[]);
         const newIdByOldIdByTableId = this.buildNewIdByOldIdByTableId(archive, newIdsByTableId);
         console.info(newIdByOldIdByTableId);
 
@@ -556,15 +646,15 @@ class DefaultArchiveImporter {
 
         this.output.next("Écriture des colonnes formule d'initialisation");
         const updateTriggerActions = await this.#buildUpdateTriggerActions(
-            archive, newIdsByTableId, newIdByOldIdByTableId);
+            archive, newIdsByTableId);
         await this.docApi.applyUserActions(updateTriggerActions);
         console.info(`Trigger formulas: ${updateTriggerActions.length} tables fixed`)
     }
 
-    async #buildAddActions(archive) {
+    async #buildAddActions(archive: Archive): Promise<UserAction[]> {
         const importOptions = archive.importOptions;
 
-        const addActions = Array();
+        const addActions = Array<grist.UserAction>();
 
         for (let tableId of archive.tablesIds) {
             this.output.next(`Table : ${tableId}`);
@@ -583,10 +673,16 @@ class DefaultArchiveImporter {
                 }
             }
             const colInfoByColId = this.colInfoByColIdByTableId.get(tableId);
+            if (colInfoByColId === undefined) {
+                continue;
+            }
             const table = archive.tableById.get(tableId);
+            if (table === undefined) {
+                continue;
+            }
 
             const records = await this.#buildRecords(archive, colInfoByColId, table);
-            const values = Object.values(records)[0];
+            const values: CellValue[] = Object.values(records)[0];
             const nulls = Array(values.length).fill(null);
             addActions.push(["BulkAddRecord", tableId, nulls, records]);
         }
@@ -595,32 +691,44 @@ class DefaultArchiveImporter {
     }
 
 
-    async #buildUpdateRefsActions(archive, newIdsByTableId, newIdByOldIdByTableId) {
+    async #buildUpdateRefsActions(
+        archive: Archive, newIdsByTableId: Map<string, number[]>, newIdByOldIdByTableId: Map<string, Map<number, number>>) {
         const updateActions = Array();
         const refListRegexp = new RegExp("^RefList:(.*)$");
         const refRegexp = new RegExp("^Ref:(.*)$");
         for (let [tableId, table] of archive.tableEntries()) {
             let colInfoByColId = this.colInfoByColIdByTableId.get(tableId);
-            const records = {};
+            if (colInfoByColId === undefined) {
+                continue;
+            }
+            const records: TableData = { id: [] };
             for (let [colId, colInfo] of colInfoByColId.entries()) {
                 const refListM = colInfo.colType.match(refListRegexp);
                 if (refListM !== null) {
                     const refTableId = refListM[1];
                     console.log("RefList", tableId, colId, "->", refTableId);
                     const newIdByOldId = newIdByOldIdByTableId.get(refTableId)
+                    if (newIdByOldId === undefined) {
+                        continue;
+                    }
                     const newValues = [];
-                    for (let arr of table[colId]) {
-                        let newArr;
-                        if (arr === null) {
-                            newArr = null;
+                    let col = table[colId] as GristListValueOrNull[];
+                    for (let arr of col) {
+                        if (arr === null || arr === undefined) {
+                            newValues.push(null);
                         } else {
-                            console.assert(arr[0] === "L")
-                            newArr = ["L"]
-                            arr.slice(1).forEach((oldId) => {
-                                newArr.push(newIdByOldId.get(oldId))
+                            console.assert(arr[0] === "L");
+                            let ids = arr.slice(1) as number[];
+
+                            let newArr: GristListValue = ["L"];
+                            ids.forEach((oldId: number, index: number, _arr: number[]) => {
+                                const newId = newIdByOldId.get(oldId);
+                                if (newId != undefined) {
+                                    newArr.push(newId);
+                                }
                             });
+                            newValues.push(newArr);
                         }
-                        newValues.push(newArr);
                     }
                     records[colId] = newValues
                 } else {
@@ -629,8 +737,12 @@ class DefaultArchiveImporter {
                         const refTableId = refM[1];
                         console.log("Ref", tableId, colId, "->", refTableId);
                         const newIdByOldId = newIdByOldIdByTableId.get(refTableId)
+                        if (newIdByOldId === undefined) {
+                            continue;
+                        }
                         let newIds = [];
-                        for (let oldId of table[colId]) {
+                        let col = table[colId] as (number | null)[];
+                        for (let oldId of col) {
                             let newId;
                             if (oldId === null) {
                                 newId = null;
@@ -652,14 +764,14 @@ class DefaultArchiveImporter {
         return updateActions;
     }
 
-    buildNewIdByOldIdByTableId(archive, newIdsByTableId) {
+    buildNewIdByOldIdByTableId(archive: Archive, newIdsByTableId: Map<string, string[]>) {
         const newIdByOldIdByTableId = new Map();
         for (let [tableId, table] of archive.tableEntries()) {
             const newIds = newIdsByTableId.get(tableId);
             if (newIds === undefined) {
                 continue;
             }
-            const newIdByOldId = newIdByOldIdByTableId.getOrInsert(tableId, new Map())
+            const newIdByOldId = getOrInsert(newIdByOldIdByTableId, tableId, new Map<string, string>())
             table.id.forEach((id, index) => {
                 newIdByOldId.set(id, newIds[index]);
             });
@@ -668,7 +780,7 @@ class DefaultArchiveImporter {
         return newIdByOldIdByTableId;
     }
 
-    buildNewIdsByTableId(actions, results) {
+    buildNewIdsByTableId(actions: UserAction[], results: number[]) {
         const newIdsByTableId = new Map();
         actions.forEach((action, index) => {
             const tableId = action[1];
@@ -678,10 +790,10 @@ class DefaultArchiveImporter {
         return newIdsByTableId;
     }
 
-    async #buildRecords(archive, colInfoByColId, table) {
+    async #buildRecords(archive: Archive, colInfoByColId: Map<string, GristColInfo>, table: TableData) {
         const attachmentDataById = archive.attachmentDataById;
         const options = archive.importOptions;
-        const records = {}
+        const records: TableData = { id: [] }
         for (let [colId, colInfo] of colInfoByColId) {
             const values = table[colId];
             if (values === undefined) {
@@ -710,7 +822,7 @@ class DefaultArchiveImporter {
 
             let newValues;
             if (colInfo.colType === "Attachments") {
-                newValues = await this.#uploadAttachments(values, attachmentDataById);
+                newValues = await this.#uploadAttachments(values as GristListValueOrNull[], attachmentDataById);
             } else {
                 newValues = table[colId];
             }
@@ -719,14 +831,17 @@ class DefaultArchiveImporter {
         return records;
     }
 
-    async #buildUpdateTriggerActions(archive, newIdsByTableId) {
+    async #buildUpdateTriggerActions(archive: Archive, newIdsByTableId: Map<string, string[]>) {
         const newIdByOldIdByTableId = this.buildNewIdByOldIdByTableId(archive, newIdsByTableId);
         console.info(newIdByOldIdByTableId);
 
         const updateActions = Array();
         for (let [tableId, table] of archive.tableEntries()) {
             let colInfoByColId = this.colInfoByColIdByTableId.get(tableId);
-            const records = {};
+            if (colInfoByColId === undefined) {
+                continue;
+            }
+            const records: grist.TableDataWithoutId = {};
             for (let [colId, colInfo] of colInfoByColId.entries()) {
                 if (colInfo.hasTriggerFormula) {
                     records[colId] = table[colId];
@@ -740,17 +855,22 @@ class DefaultArchiveImporter {
         return updateActions;
     }
 
-    async #uploadAttachments(values, attachmentDataById) {
-        const newValues = Array();
+    async #uploadAttachments(values: GristListValueOrNull[], attachmentDataById: Map<number, ExpImpAttachmentData>) {
+        const newValues = Array<GristListValueOrNull>();
         for (let arr of values) {
-            let newArr;
+            let newArr: string[] | null;
             if (arr === null) {
-                newArr = null;
+                newValues.push(null);
             } else {
                 console.assert(arr[0] === "L");
-                newArr = ["L"];
-                for (let attachmentId of arr.slice(1)) {
+                let col = arr.slice(1) as number[];
+
+                const newArr: GristListValue = ["L"];
+                for (let attachmentId of col) {
                     const attachmentData = attachmentDataById.get(attachmentId);
+                    if (attachmentData === undefined) {
+                        continue;
+                    }
                     const newId = await this.#uploadAttachment(attachmentData);
                     if (newId > 0) {
                         newArr.push(newId);
@@ -758,13 +878,13 @@ class DefaultArchiveImporter {
                         console.error(attachmentData.name);
                     }
                 }
+                newValues.push(newArr)
             }
-            newValues.push(newArr);
         }
         return newValues;
     }
 
-    async #uploadAttachment(data) {
+    async #uploadAttachment(data: ExpImpAttachmentData) {
         /*
          * @param {Object} tokenInfo - the grist token info
          * @param {Map} data - the attachment data
@@ -800,7 +920,7 @@ class DefaultArchiveImporter {
 
     async getCurVersion() {
         const metaTable = await this.docApi.fetchTable(META_TABLE);
-        return metaTable[COL_VERSION][0];
+        return metaTable[COL_VERSION][0] as string;
     }
 }
 
@@ -808,41 +928,44 @@ grist.ready({
     requiredAccess: 'full',
 });
 
-async function main(_event) {
-    const docApi = grist.docApi;
-    const jszipp = await import("https://unpkg.com/web-jszipp/dist/jszipp.mjs");
+async function main(_event: Event) {
+    const docApi: grist.GristDocAPI = grist.docApi;
 
-    function createOutput() {
+    // https://github.com/JSZipp/JSZipp
+    function createOutput(): Output {
         try {
             // responsibility of user
+            // @ts-ignore
             return new DocumentOutput(document);
         } catch (ReferenceError) {
             return new ConsoleOutput();
         }
     }
 
-    function createArchiveCreator(docApi, jszipp, output) {
+    function createArchiveCreator(docApi: grist.GristDocAPI, output: Output): DefaultArchiveCreator {
         try {
             // responsibility of user
-            return new ArchiveCreator(docApi, jszipp, output);
+            // @ts-ignore
+            return new ArchiveCreator(docApi, output);
         } catch (ReferenceError) {
-            return new DefaultArchiveCreator(docApi, jszipp, output);
+            return new DefaultArchiveCreator(docApi, output);
         }
     }
 
-    function createArchiveExporter(output, zipContent) {
+    function createArchiveExporter(output: Output, zipContent: Blob): DefaultArchiveExporter {
         try {
             // responsibility of user
+            // @ts-ignore
             return new ArchiveExporter(output)
         } catch (ReferenceError) {
             return new DefaultArchiveExporter(output)
         }
     }
 
-    async function exportArchive(_event) {
+    async function exportArchive(_event: Event) {
         const output = createOutput();
         output.begin("Export de l'archive")
-        const archiveCreator = createArchiveCreator(docApi, jszipp, output);
+        const archiveCreator = createArchiveCreator(docApi, output);
         const zipContent = await archiveCreator.create();
         const archiveExporter = createArchiveExporter(output, zipContent);
         await archiveExporter.exportArchive(zipContent);
@@ -850,28 +973,30 @@ async function main(_event) {
         output.end()
     }
 
-    function createArchiveReader(jszipp, output) {
+function createArchiveReader(output: Output): DefaultArchiveReader {
         try {
             // responsibility of user
-            return new ArchiveReader(jszipp, output);
+            // @ts-ignore
+            return new ArchiveReader(output);
         } catch (ReferenceError) {
-            return new DefaultArchiveReader(jszipp, output);
+            return new DefaultArchiveReader(output);
         }
     }
 
-    function createArchiveImporter(docApi, output) {
+    function createArchiveImporter(docApi: grist.GristDocAPI, output: Output) {
         try {
             // responsibility of user
+            // @ts-ignore
             return ArchiveImporter.create(docApi, output);
         } catch (ReferenceError) {
             return DefaultArchiveImporter.create(docApi, output)
         }
     }
 
-    async function importArchive(event) {
+    async function importArchive(event: Event) {
         const output = createOutput();
         output.begin("Import de l'archive")
-        const reader = createArchiveReader(jszipp, output);
+        const reader = createArchiveReader(output);
         const archive = await reader.readFromEvent(event);
         const archiveImporter = await createArchiveImporter(docApi, output);
         await archiveImporter.importArchive(archive);
@@ -879,8 +1004,18 @@ async function main(_event) {
         output.end()
     }
 
-    document.getElementById("export").onclick = exportArchive;
-    document.getElementById("import").onchange = importArchive;
+    const exportElement = document.getElementById("export");
+    if (exportElement === null) {
+        console.warn(`No "export" element found`);
+    } else {
+        exportElement.onclick = exportArchive;
+    }
+    const importElement = document.getElementById("import");
+    if (importElement === null) {
+        console.warn(`No "import" element found`);
+    } else {
+        importElement.onchange = importArchive;
+   }
 }
 
 document.addEventListener("DOMContentLoaded", main)

@@ -1,9 +1,11 @@
 {
   "compilerOptions": {
     "rootDir": "./src",
-    "outDir": "./built",
-    "allowJs": true,
-    "target": "ES6"
+    "target": "es2025",
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "noEmit": true,
+    "strict": true
   },
   "include": ["./src/**/*"]
 }

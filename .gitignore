@@ -1,4 +1,6 @@
 .idea
-built
+dist
+node_modules
 
 cwb.diff
+package-lock.json

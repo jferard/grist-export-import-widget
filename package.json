@@ -20,5 +20,16 @@
         }
       ]
     }
-  ]
+  ],
+  "dependencies": {
+    "web-jszipp": "^1.0.8"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && esbuild src/exp_imp.ts --bundle --minify --sourcemap --outfile=dist/exp_imp.js"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
+  }
 }
