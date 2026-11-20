@@ -21,30 +21,24 @@ class DocumentOutput {
     end() {}
 }
 
-class ArchiveExporter extends DefaultArchiveExporter {
-    getArchiveName() {
-        let dateStr = new Date().toISOString();
-        return `my_export_${dateStr}.zip`;
-    }
+function getArchiveName() {
+    let dateStr = new Date().toISOString();
+    return `my_export_${dateStr}.zip`;
 }
 
-class ArchiveImporter extends DefaultArchiveImporter {
-    static async create(docApi, modal) {
-        const tokenInfo = await docApi.getAccessToken({readOnly: false});
-        const colInfoByColIdByTableId = await DefaultArchiveImporter.findColInfoByColIdByTableId(docApi);
-        return new ArchiveImporter(docApi, tokenInfo, modal, colInfoByColIdByTableId);
-    }
-
-    async prepareArchive(archive) {
-        await super.prepareArchive(archive);
-
-        // use:
-        // mapRows(tableId, func)
-        // renameCols(tableId, newNameByOldName)
-        // removeCols(tableId, colNames)
-        // renameTable(srcTableId, destTableId)
-        // removeTable(srcTableId)
-        // duplicateTable(curTableId, newTableId)
-        // to update the archive
-    }
+async function prepareArchive(archive, meta, output) {
+    // use:
+    // mapRows(tableId, func)
+    // renameCols(tableId, newNameByOldName)
+    // removeCols(tableId, colNames)
+    // renameTable(srcTableId, destTableId)
+    // removeTable(srcTableId)
+    // duplicateTable(curTableId, newTableId)
+    // to update the archive
 }
+
+expimp.register({
+    "output": new DocumentOutput(window.document),
+    "getArchiveName": getArchiveName,
+    "prepareArchive": prepareArchive,
+});

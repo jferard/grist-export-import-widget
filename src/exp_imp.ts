@@ -14,10 +14,6 @@
    limitations under the License.
 */
 import {ZipWriter, openZip, ZipRandomAccessReader} from "web-jszipp";
-import CellValue = grist.CellValue;
-import TableData = grist.TableData;
-import RowRecord = grist.RowRecord;
-import UserAction = grist.UserAction;
 
 function getOrInsert<K, V>(map: Map<K, V>, key: K, value: V): V {
     if (map.has(key)) {
@@ -44,10 +40,38 @@ type ExpImpImportOptions = {
     ignoreFormulas: boolean
 }
 
+type ExpImpMeta = {
+    TemplateId: string
+    Version: string
+    [key: string]: grist.CellValue
+}
+
 type ExpImpAttachmentData = {
     name: string
     type: string
     bytes: any
+}
+
+type ExpImpUserParameters = {
+    "exportId"?: string;
+    "importId"?: string;
+    "output"?: Output;
+    getArchiveName?: () => string
+    before?: (docApi: grist.GristDocAPI) => Promise<void>
+    prepareArchive?: (archive: Archive, meta: ExpImpMeta, output: Output) => Promise<void>
+    after?: (docApi: grist.GristDocAPI) => Promise<void>
+    options?: ExpImpImportOptions
+}
+
+type ExpImpParameters = {
+    "exportId": string;
+    "importId": string;
+    "output": Output;
+    getArchiveName: () => string
+    before: (docApi: grist.GristDocAPI) => Promise<void>
+    prepareArchive: (archive: Archive, meta: ExpImpMeta, output: Output) => Promise<void>
+    after: (docApi: grist.GristDocAPI) => Promise<void>
+    options: ExpImpImportOptions
 }
 
 const META_TABLE = "Meta";
@@ -56,14 +80,16 @@ const COL_TEMPLATE_ID = "TemplateId";
 
 interface Output {
     begin(title: string, info?: string): void;
+
     next(info: string): void;
+
     end(): void;
 }
 
 class ConsoleOutput implements Output {
     begin(title: string, info?: string) {
         console.info("> begin output")
-        console.info(`tìtle: ${title}`);
+        console.info(`title: ${title}`);
         if (info !== undefined) {
             this.next(info);
         }
@@ -80,7 +106,7 @@ class ConsoleOutput implements Output {
     }
 }
 
-class DefaultArchiveCreator {
+class ArchiveCreator {
     docApi: grist.GristDocAPI
     output: ConsoleOutput
 
@@ -195,9 +221,9 @@ class DefaultArchiveCreator {
         const colsIdsByTableId = new Map();
         const gristColumns = await this.docApi.fetchTable("_grist_Tables_column");
         const gristTables = await this.docApi.fetchTable("_grist_Tables");
-        gristColumns.parentId.forEach((parentId: CellValue, index: number, _arr: CellValue[]) => {
+        gristColumns.parentId.forEach((parentId: grist.CellValue, index: number, _arr: grist.CellValue[]) => {
             if (gristColumns.type[index] === "Attachments") {
-                const tableIndex = gristTables.id.findIndex((id: number) => id === (parentId as number)) ;
+                const tableIndex = gristTables.id.findIndex((id: number) => id === (parentId as number));
                 const tableId = gristTables.tableId[tableIndex];
                 const colsIds = getOrInsert(colsIdsByTableId, tableId, []);
                 colsIds.push(gristColumns.colId[index]);
@@ -260,15 +286,9 @@ class DefaultArchiveExporter {
 }
 
 class Archive {
-    tableById: Map<string, TableData>
+    tableById: Map<string, grist.TableData>
     attachmentDataById: Map<number, ExpImpAttachmentData>
-    importOptions: ExpImpImportOptions = {
-        "ignoreMeta": true, // ignore the Meta table from the archive
-        "ignoreExtraTables": true, // ignore tables from the archive that are not in the document
-        "ignoreMissingCols": true, // ignore cols from the document that are not in the archive
-        "ignoreFormulas": true, // // ignore the formula cols from the archive
-
-    }
+    importOptions: ExpImpImportOptions
 
     constructor(tableById: Map<string, any>, attachmentDataById: Map<number, ExpImpAttachmentData>) {
         this.tableById = tableById;
@@ -283,22 +303,25 @@ class Archive {
     }
 
     get version(): string {
-        return this.meta[COL_VERSION];
+        return this.meta.Version;
     }
 
     get templateId(): string {
-        return this.meta[COL_TEMPLATE_ID];
+        return this.meta.TemplateId;
     }
 
-    get meta(): {[k: string]: any} {
+    get meta(): ExpImpMeta {
         let meta = this.tableById.get(META_TABLE);
         if (meta === undefined) {
             throw new Error("Meta table not found");
         }
+        if (!(COL_TEMPLATE_ID in meta && COL_VERSION in meta)) {
+            throw new Error("Meta table missing mandatory columns");
+        }
         return Object.fromEntries(
             Object.entries(meta)
                 .map(([key, values]) => [key, values[0]])
-        );
+        ) as ExpImpMeta;
     }
 
     get tablesIds() {
@@ -334,14 +357,14 @@ class Archive {
         this.tableById.set(tableId, newTable);
     }
 
-    renameCols(tableId: string, newNameByOldName: {[k: string]: string}) {
+    renameCols(tableId: string, newNameByOldName: { [k: string]: string }) {
         const table = this.tableById.get(tableId);
         if (table === undefined) {
             console.warn(`Table ${tableId} not found`);
             return;
         }
 
-        const newTable: TableData = { id: [] };
+        const newTable: grist.TableData = { id: [] };
         const keys = Object.keys(table);
         keys.forEach((key) => {
             let newKey = newNameByOldName[key];
@@ -360,7 +383,7 @@ class Archive {
             return;
         }
 
-        const newTable: TableData = { id: [] };
+        const newTable: grist.TableData = {id: []};
         const keys = Object.keys(table);
         keys.forEach((key) => {
             if (!colNames.includes(key)) {
@@ -397,7 +420,7 @@ class Archive {
 
     // end user funcs
 
-    #tableToRows(table: TableData): grist.RowRecord[] {
+    #tableToRows(table: grist.TableData): grist.RowRecord[] {
         let keys = Object.keys(table);
         const rows: grist.RowRecord[] = Array();
         table.id.forEach((_id: number, index: number, _arr: number[]) => {
@@ -407,9 +430,9 @@ class Archive {
         return rows;
     }
 
-    #rowsToTable(rows: grist.RowRecord[]): TableData {
+    #rowsToTable(rows: grist.RowRecord[]): grist.TableData {
         console.assert(rows.length > 0)
-        const table: TableData = { id: [] }
+        const table: grist.TableData = {id: []}
         const keys = Object.keys(rows[0]);
         if (!("id" in keys)) {
             throw new Error(`key id not found in "${keys}"`);
@@ -426,14 +449,14 @@ class Archive {
     }
 }
 
-class DefaultArchiveReader {
+class ArchiveReader {
     output: any
 
     constructor(output: Output) {
         this.output = output;
     }
 
-    async readFromEvent(event: Event): Promise<Archive|null> {
+    async readFromEvent(event: Event): Promise<Archive | null> {
         this.output.next("Lecture depuis la balise 'input'")
         console.log("Read...");
 
@@ -498,7 +521,11 @@ class DefaultArchiveReader {
                     console.error("Weird entry", path)
                     continue;
                 }
-                const attachmentData = getOrInsert(attachmentDataById, attachmentId, { name: "", type: "", bytes: [] });
+                const attachmentData = getOrInsert(attachmentDataById, attachmentId, {
+                    name: "",
+                    type: "",
+                    bytes: []
+                });
                 if (arr[2] === "meta.json") {
                     const data = await this.#getJSONData(zip, path);
                     if (data === null) {
@@ -546,14 +573,14 @@ class DefaultArchiveReader {
     }
 }
 
-class DefaultArchiveImporter {
-    static async create(docApi: grist.GristDocAPI, output: Output) {
+class ArchiveImporterFactory {
+    async create(docApi: grist.GristDocAPI, parameters: ExpImpParameters) {
         const tokenInfo = await docApi.getAccessToken({readOnly: false});
-        const colInfoByColIdByTableId = await DefaultArchiveImporter.findColInfoByColIdByTableId(docApi);
-        return new DefaultArchiveImporter(docApi, tokenInfo, output, colInfoByColIdByTableId);
+        const colInfoByColIdByTableId = await this.findColInfoByColIdByTableId(docApi);
+        return new ArchiveImporter(docApi, colInfoByColIdByTableId, tokenInfo, parameters);
     }
 
-    static async findColInfoByColIdByTableId(docApi: grist.GristDocAPI) {
+    async findColInfoByColIdByTableId(docApi: grist.GristDocAPI) {
         /*
          * Analyse the current document.
          * @param {Object} docApi - the grist doc API
@@ -562,7 +589,7 @@ class DefaultArchiveImporter {
         const colTypeByColIdByTableId = new Map<string, Map<string, GristColInfo>>();
         const gristColumns = await docApi.fetchTable("_grist_Tables_column");
         const gristTables = await docApi.fetchTable("_grist_Tables");
-        gristColumns.parentId.forEach((parentId: CellValue, index: number, _arr: CellValue[]) => {
+        gristColumns.parentId.forEach((parentId: grist.CellValue, index: number, _arr: grist.CellValue[]) => {
             const tableIndex = gristTables.id.findIndex((id: number) => id === (parentId as number));
             const tableId = gristTables.tableId[tableIndex];
             const colTypeByColId = getOrInsert(colTypeByColIdByTableId, tableId, new Map());
@@ -580,56 +607,56 @@ class DefaultArchiveImporter {
         });
         return colTypeByColIdByTableId;
     }
+}
 
+class ArchiveImporter {
     docApi: grist.GristDocAPI
-    tokenInfo: grist.AccessTokenResult
-    output: Output
     colInfoByColIdByTableId: Map<string, Map<string, GristColInfo>>
+    tokenInfo: grist.AccessTokenResult
+    parameters: ExpImpParameters
 
-    constructor(docApi: grist.GristDocAPI, tokenInfo: grist.AccessTokenResult, output: Output, colInfoByColIdByTableId: Map<string, Map<string, GristColInfo>>) {
+    constructor(
+        docApi: grist.GristDocAPI, colInfoByColIdByTableId: Map<string, Map<string, GristColInfo>>, tokenInfo: grist.AccessTokenResult, parameters: ExpImpParameters) {
         this.docApi = docApi;
-        this.tokenInfo = tokenInfo;
-        this.output = output;
         this.colInfoByColIdByTableId = colInfoByColIdByTableId;
+        this.tokenInfo = tokenInfo;
+        this.parameters = parameters;
     }
 
     async importArchive(archive: Archive) {
         /*
          * Basic function that simply import the data.
          */
-        this.output.next(`Version de l'archive ${archive.templateId} v.${archive.version}`);
+        const output = this.parameters.output;
+        output.next(`Version de l'archive ${archive.templateId} v.${archive.version}`);
         console.log("Importing...", archive.version);
 
-        this.output.next("Initialisation");
-        await this.before(archive);
-        this.output.next("Préparation de l'archive");
-        await this.prepareArchive(archive);
+        output.next("Initialisation");
+        await this.parameters.before(this.docApi);
+        output.next("Préparation de l'archive");
+        await this.parameters.prepareArchive(archive, await this.fetchMeta(), this.parameters.output);
         await this.#writeArchive(archive);
-        this.output.next("Finalisation");
-        await this.after(archive);
+        output.next("Finalisation");
+        await this.parameters.after(this.docApi);
     }
 
-    async before(archive: Archive) {
-        // do nothing
-    }
-
-    async prepareArchive(archive: Archive) {
-        // just check id and version...
-        const curTemplateId = await this.getCurTemplateId();
-        const curVersion = await this.getCurVersion();
-        if (archive.templateId !== curTemplateId || archive.version > curVersion) {
-            this.output.begin("Erreur", `Impossible d'importer un outil de type ${archive.templateId} v.${archive.version}`);
-            throw Error(`Wrong archive ${archive.templateId}`);
+    async fetchMeta(): Promise<ExpImpMeta> {
+        let meta = await this.docApi.fetchTable(META_TABLE);
+        if (meta === undefined) {
+            throw new Error("Meta table not found");
         }
-        // ...and do nothing
-    }
-
-    async after(archive: Archive) {
-        // do nothing
+        if (!(COL_TEMPLATE_ID in meta && COL_VERSION in meta)) {
+            throw new Error("Meta table missing mandatory columns");
+        }
+        return Object.fromEntries(
+            Object.entries(meta)
+                .map(([key, values]) => [key, values[0]])
+        ) as ExpImpMeta;
     }
 
     async #writeArchive(archive: Archive) {
-        this.output.next("Écriture des tables (sans les références)");
+        const output = this.parameters.output;
+        output.next("Écriture des tables (sans les références)");
         const addActions = await this.#buildAddActions(archive);
         const result = await this.docApi.applyUserActions(addActions);
         console.info(`Actions: ${addActions.length} tables added`)
@@ -638,26 +665,27 @@ class DefaultArchiveImporter {
         const newIdByOldIdByTableId = this.buildNewIdByOldIdByTableId(archive, newIdsByTableId);
         console.info(newIdByOldIdByTableId);
 
-        this.output.next("Écriture des colonnes références");
+        output.next("Écriture des colonnes références");
         const updateRefsActions = await this.#buildUpdateRefsActions(
             archive, newIdsByTableId, newIdByOldIdByTableId);
         await this.docApi.applyUserActions(updateRefsActions);
         console.info(`Actions: ${updateRefsActions.length} tables fixed`)
 
-        this.output.next("Écriture des colonnes formule d'initialisation");
+        output.next("Écriture des colonnes formule d'initialisation");
         const updateTriggerActions = await this.#buildUpdateTriggerActions(
             archive, newIdsByTableId);
         await this.docApi.applyUserActions(updateTriggerActions);
         console.info(`Trigger formulas: ${updateTriggerActions.length} tables fixed`)
     }
 
-    async #buildAddActions(archive: Archive): Promise<UserAction[]> {
+    async #buildAddActions(archive: Archive): Promise<grist.UserAction[]> {
+        const output = this.parameters.output;
         const importOptions = archive.importOptions;
 
         const addActions = Array<grist.UserAction>();
 
         for (let tableId of archive.tablesIds) {
-            this.output.next(`Table : ${tableId}`);
+            output.next(`Table : ${tableId}`);
             if (tableId === META_TABLE) {
                 if (importOptions.ignoreMeta) {
                     console.warn(`Ignore table Meta from the archive`);
@@ -682,8 +710,8 @@ class DefaultArchiveImporter {
             }
 
             const records = await this.#buildRecords(archive, colInfoByColId, table);
-            const values: CellValue[] = Object.values(records)[0];
-            const nulls = Array(values.length).fill(null);
+            const values: grist.CellValue[] = Object.values(records)[0];
+            const nulls: (number| null)[] = Array(values.length).fill(null);
             addActions.push(["BulkAddRecord", tableId, nulls, records]);
         }
         console.log(addActions);
@@ -701,7 +729,7 @@ class DefaultArchiveImporter {
             if (colInfoByColId === undefined) {
                 continue;
             }
-            const records: TableData = { id: [] };
+            const records: grist.TableDataWithoutId = {};
             for (let [colId, colInfo] of colInfoByColId.entries()) {
                 const refListM = colInfo.colType.match(refListRegexp);
                 if (refListM !== null) {
@@ -780,7 +808,7 @@ class DefaultArchiveImporter {
         return newIdByOldIdByTableId;
     }
 
-    buildNewIdsByTableId(actions: UserAction[], results: number[]) {
+    buildNewIdsByTableId(actions: grist.UserAction[], results: number[]) {
         const newIdsByTableId = new Map();
         actions.forEach((action, index) => {
             const tableId = action[1];
@@ -790,10 +818,10 @@ class DefaultArchiveImporter {
         return newIdsByTableId;
     }
 
-    async #buildRecords(archive: Archive, colInfoByColId: Map<string, GristColInfo>, table: TableData) {
+    async #buildRecords(archive: Archive, colInfoByColId: Map<string, GristColInfo>, table: grist.TableData) {
         const attachmentDataById = archive.attachmentDataById;
         const options = archive.importOptions;
-        const records: TableData = { id: [] }
+        const records: grist.TableDataWithoutId = {}
         for (let [colId, colInfo] of colInfoByColId) {
             const values = table[colId];
             if (values === undefined) {
@@ -858,7 +886,6 @@ class DefaultArchiveImporter {
     async #uploadAttachments(values: GristListValueOrNull[], attachmentDataById: Map<number, ExpImpAttachmentData>) {
         const newValues = Array<GristListValueOrNull>();
         for (let arr of values) {
-            let newArr: string[] | null;
             if (arr === null) {
                 newValues.push(null);
             } else {
@@ -928,94 +955,94 @@ grist.ready({
     requiredAccess: 'full',
 });
 
-async function main(_event: Event) {
+async function main(userParameters: ExpImpUserParameters) {
     const docApi: grist.GristDocAPI = grist.docApi;
+    console.error(userParameters);
 
-    // https://github.com/JSZipp/JSZipp
-    function createOutput(): Output {
-        try {
-            // responsibility of user
-            // @ts-ignore
-            return new DocumentOutput(document);
-        } catch (ReferenceError) {
-            return new ConsoleOutput();
-        }
-    }
-
-    function createArchiveCreator(docApi: grist.GristDocAPI, output: Output): DefaultArchiveCreator {
-        try {
-            // responsibility of user
-            // @ts-ignore
-            return new ArchiveCreator(docApi, output);
-        } catch (ReferenceError) {
-            return new DefaultArchiveCreator(docApi, output);
-        }
-    }
-
-    function createArchiveExporter(output: Output, zipContent: Blob): DefaultArchiveExporter {
-        try {
-            // responsibility of user
-            // @ts-ignore
-            return new ArchiveExporter(output)
-        } catch (ReferenceError) {
-            return new DefaultArchiveExporter(output)
-        }
+    const parameters: ExpImpParameters = {
+        ...defaultExpImpParameters,
+        ...userParameters,
     }
 
     async function exportArchive(_event: Event) {
-        const output = createOutput();
+        const output = parameters.output;
+        console.error("OUT**");
+        console.error(output);
         output.begin("Export de l'archive")
-        const archiveCreator = createArchiveCreator(docApi, output);
+        const archiveCreator = new ArchiveCreator(docApi, output);
         const zipContent = await archiveCreator.create();
-        const archiveExporter = createArchiveExporter(output, zipContent);
+        const archiveExporter = new DefaultArchiveExporter(output);
         await archiveExporter.exportArchive(zipContent);
         output.next("Terminé")
         output.end()
     }
 
-function createArchiveReader(output: Output): DefaultArchiveReader {
-        try {
-            // responsibility of user
-            // @ts-ignore
-            return new ArchiveReader(output);
-        } catch (ReferenceError) {
-            return new DefaultArchiveReader(output);
-        }
-    }
-
-    function createArchiveImporter(docApi: grist.GristDocAPI, output: Output) {
-        try {
-            // responsibility of user
-            // @ts-ignore
-            return ArchiveImporter.create(docApi, output);
-        } catch (ReferenceError) {
-            return DefaultArchiveImporter.create(docApi, output)
-        }
-    }
-
     async function importArchive(event: Event) {
-        const output = createOutput();
+        const output = parameters.output;
         output.begin("Import de l'archive")
-        const reader = createArchiveReader(output);
+        const reader = new ArchiveReader(output);
         const archive = await reader.readFromEvent(event);
-        const archiveImporter = await createArchiveImporter(docApi, output);
+        if (archive === null) {
+            console.error(`Can't load archive`);
+            return
+        }
+        const archiveImporter = await new ArchiveImporterFactory().create(docApi, parameters);
         await archiveImporter.importArchive(archive);
         output.next("Terminé")
         output.end()
     }
 
-    const exportElement = document.getElementById("export");
+    const exportElement = document.getElementById(parameters.exportId);
     if (exportElement === null) {
-        console.warn(`No "export" element found`);
+        console.warn(`No ${parameters.exportId} element found`);
     } else {
         exportElement.onclick = exportArchive;
     }
-    const importElement = document.getElementById("import");
+    const importElement = document.getElementById(parameters.importId);
     if (importElement === null) {
-        console.warn(`No "import" element found`);
+        console.warn(`No ${parameters.importId} element found`);
     } else {
         importElement.onchange = importArchive;
-   }
+    }
 }
 
-document.addEventListener("DOMContentLoaded", main)
+function defaultGetArchiveName() {
+    let dateStr = new Date().toISOString();
+    return `export_${dateStr}.zip`;
+}
+
+async function defaultBefore(docApi: grist.GristDocAPI) {
+}
+
+async function defaultPrepareArchive(archive: Archive, meta: ExpImpMeta, output: Output) {
+    // just check id and version...
+    if (archive.templateId !== meta.TemplateId || archive.version > meta.Version) {
+        output.begin("Erreur", `Impossible d'importer un outil de type ${archive.templateId} v.${archive.version}`);
+        throw Error(`Wrong archive ${archive.templateId}`);
+    }
+}
+
+async function defaultAfter(docApi: grist.GristDocAPI) {
+}
+
+const defaultImportOptions: ExpImpImportOptions = {
+    "ignoreMeta": true, // ignore the Meta table from the archive
+    "ignoreExtraTables": true, // ignore tables from the archive that are not in the document
+    "ignoreMissingCols": true, // ignore cols from the document that are not in the archive
+    "ignoreFormulas": true, // // ignore the formula cols from the archive
+}
+
+const defaultExpImpParameters: ExpImpParameters = {
+    "exportId": "export",
+    "importId": "import",
+    "output": new ConsoleOutput(),
+    "getArchiveName": defaultGetArchiveName,
+    "before": defaultBefore,
+    "prepareArchive": defaultPrepareArchive,
+    "after": defaultAfter,
+    "options": defaultImportOptions,
+}
+
+export function register(parameters: ExpImpUserParameters) {
+    document.addEventListener("DOMContentLoaded", (_event) => main(parameters))
+}
