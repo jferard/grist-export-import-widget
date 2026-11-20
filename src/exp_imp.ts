@@ -71,7 +71,7 @@ type ExpImpParameters = {
     before: (docApi: grist.GristDocAPI) => Promise<void>
     prepareArchive: (archive: Archive, meta: ExpImpMeta, output: Output) => Promise<void>
     after: (docApi: grist.GristDocAPI) => Promise<void>
-    options: ExpImpImportOptions
+    importOptions: ExpImpImportOptions
 }
 
 const META_TABLE = "Meta";
@@ -309,18 +309,10 @@ function tableToMeta(meta: grist.TableData | undefined): ExpImpMeta {
 class Archive {
     tableById: Map<string, grist.TableData>;
     attachmentDataById: Map<number, ExpImpAttachmentData>;
-    importOptions: ExpImpImportOptions;
 
     constructor(tableById: Map<string, any>, attachmentDataById: Map<number, ExpImpAttachmentData>) {
         this.tableById = tableById;
         this.attachmentDataById = attachmentDataById;
-
-        this.importOptions = {
-            "ignoreMeta": true, // ignore the Meta table from the archive
-            "ignoreExtraTables": true, // ignore tables from the archive that are not in the document
-            "ignoreMissingCols": true, // ignore cols from the document that are not in the archive
-            "ignoreFormulas": true, // // ignore the formula cols from the archive
-        }
     }
 
     get Version(): string {
@@ -684,7 +676,7 @@ class ArchiveImporter {
 
     async #buildAddActions(archive: Archive): Promise<grist.UserAction[]> {
         const output = this.parameters.output;
-        const importOptions = archive.importOptions;
+        const importOptions = this.parameters.importOptions;
 
         const addActions = Array<grist.UserAction>();
 
@@ -725,7 +717,7 @@ class ArchiveImporter {
 
     async #buildUpdateRefsActions(
         archive: Archive, newIdsByTableId: Map<string, number[]>, newIdByOldIdByTableId: Map<string, Map<number, number>>): Promise<grist.UserAction[]> {
-        const options = archive.importOptions;
+        const options = this.parameters.importOptions;
 
         const updateActions = Array<grist.UserAction>();
         const refListRegexp = new RegExp("^RefList:(.*)$");
@@ -835,7 +827,7 @@ class ArchiveImporter {
     async #buildRecords(
         archive: Archive, colInfoByColId: Map<string, GristColInfo>, table: grist.TableData): Promise<grist.TableDataWithoutId> {
         const attachmentDataById = archive.attachmentDataById;
-        const options = archive.importOptions;
+        const options = this.parameters.importOptions;
         const records: grist.TableDataWithoutId = {};
         for (let [colId, colInfo] of colInfoByColId) {
             const values = table[colId];
@@ -1064,7 +1056,7 @@ const defaultExpImpParameters: ExpImpParameters = {
     "before": defaultBefore,
     "prepareArchive": defaultPrepareArchive,
     "after": defaultAfter,
-    "options": defaultImportOptions,
+    "importOptions": defaultImportOptions,
 };
 
 export function register(parameters: ExpImpUserParameters) {
