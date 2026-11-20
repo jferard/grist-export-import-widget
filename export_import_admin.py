@@ -42,15 +42,17 @@ RAW_HTML = """
 
 RAW_JS = ""
 
+CUR_PATH = Path(__file__).parent
+
 def build_single_page(dsfr: bool):
-    cur_path = Path(__file__).parent
-    with (cur_path / "built/exp_imp.js").open("r", encoding="utf-8") as s:
+    with (CUR_PATH / "dist/exp_imp.js").open("r", encoding="utf-8") as s:
         imp_exp_js = s.read()
 
+    examples_path = CUR_PATH / "examples"
     if dsfr:
-        with (cur_path / "dsfr-example.html").open("r", encoding="utf-8") as s:
+        with (examples_path / "dsfr-example.html").open("r", encoding="utf-8") as s:
             html = s.read()
-        with (cur_path / "dsfr-example.js").open("r", encoding="utf-8") as s:
+        with (examples_path / "dsfr-example.js").open("r", encoding="utf-8") as s:
             js = s.read()
         filename = "dsfr_single_page.html"
     else:
@@ -77,15 +79,15 @@ def build_single_page(dsfr: bool):
 
 
     new_html = html.replace("<script src=\"exp_imp.js\"></script>", f"<script>{full_js}</script>")
-    with (cur_path / filename).open("w", encoding="utf-8") as d:
+    with (examples_path / filename).open("w", encoding="utf-8") as d:
         d.write(new_html)
 
 
 def check(custom_widget_builder_path: Path):
-    cur_path = Path(__file__).parent
+    cwb_path = Path(__file__).parent / "custom-widget-builder"
     with open("cwb.diff", "w", encoding="utf-8") as f:
-        for name in ("api.js", "api_deps.js", "generate.js", "index.html", "package.json"):
-            with (cur_path / name).open("r", encoding="utf-8") as s:
+        for name in ("api.js", "api_deps.js", "index.html"):
+            with (cwb_path / name).open("r", encoding="utf-8") as s:
                 cur_lines = [line.rstrip() for line in s.readlines()]
             with (custom_widget_builder_path / name).open("r", encoding="utf-8") as s:
                 original_lines = [line.rstrip() for line in s.readlines()]
@@ -95,15 +97,12 @@ def check(custom_widget_builder_path: Path):
             f.write("\n")
 
 def build_pages(pages_path: Path):
-    cur_path = Path(__file__).parent
     build_single_page(True)
     build_single_page(False)
-    for name in (
-        "api.js", "api_deps.js", "index.html",
-    ):
-        shutil.copyfile(cur_path / name, pages_path / name)
+    for p in (CUR_PATH / "custom-widget-builder").iterdir():
+        shutil.copyfile(p, pages_path / p.name)
 
-    for p in (cur_path / "built").glob("*.js"):
+    for p in (CUR_PATH / "dist").glob("*.js"):
         shutil.copyfile(p, pages_path / p.name)
 
 

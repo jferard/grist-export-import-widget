@@ -1,0 +1,1897 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <title>Import/export</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <script src="https://grist.numerique.gouv.fr/grist-plugin-api.js"></script>
+    <script>
+/* ****************************************************************************************************
+ * BEGIN exp_imp.js
+ * Don't edit
+ *****************************************************************************************************/
+"use strict";
+var expimp = (() => {
+  var __defProp = Object.defineProperty;
+  var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  var __getOwnPropNames = Object.getOwnPropertyNames;
+  var __hasOwnProp = Object.prototype.hasOwnProperty;
+  var __export = (target, all) => {
+    for (var name in all)
+      __defProp(target, name, { get: all[name], enumerable: true });
+  };
+  var __copyProps = (to2, from, except, desc) => {
+    if (from && typeof from === "object" || typeof from === "function") {
+      for (let key of __getOwnPropNames(from))
+        if (!__hasOwnProp.call(to2, key) && key !== except)
+          __defProp(to2, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+    }
+    return to2;
+  };
+  var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+  // src/exp_imp.ts
+  var exp_imp_exports = {};
+  __export(exp_imp_exports, {
+    register: () => register
+  });
+
+  // node_modules/web-jszipp/dist/jszipp.mjs
+  var e;
+  var t;
+  var r;
+  var i;
+  var s;
+  var l;
+  var n;
+  var o;
+  var f;
+  var a;
+  var h;
+  var u;
+  var c;
+  var d;
+  var p;
+  var g;
+  var m;
+  var w;
+  var y;
+  var b;
+  var v;
+  var x;
+  var A;
+  var S;
+  var E;
+  var z;
+  var T = {};
+  T.d = (e6, t10, r2) => {
+    var i2 = (t11, r3) => {
+      for (var i3 in t11) T.o(t11, i3) && !T.o(e6, i3) && Object.defineProperty(e6, i3, { enumerable: true, [r3]: t11[i3] });
+    };
+    i2(t10, "get"), i2(r2, "value");
+  }, T.o = (e6, t10) => Object.prototype.hasOwnProperty.call(e6, t10), T.r = (e6) => {
+    "u" > typeof Symbol && Symbol.toStringTag && Object.defineProperty(e6, Symbol.toStringTag, { value: "Module" }), Object.defineProperty(e6, "__esModule", { value: true });
+  };
+  var B = {};
+  T.r(B), T.d(B, { AbortController_: () => _, DecompressionStream_: () => U, ReadableStream_: () => D, TransformStream_: () => P, WritableStream_: () => O, arrayBuffer_: () => R, installPolyfills: () => W, isReadableStream_: () => C, responseAcceptsStream_: () => M, throwIfAborted_: () => k });
+  var _ = AbortController;
+  var P = TransformStream;
+  var D = ReadableStream;
+  var O = WritableStream;
+  var U = globalThis.DecompressionStream;
+  var C = (e6) => e6 instanceof ReadableStream;
+  var M = true;
+  var R = "arrayBuffer";
+  var k = "throwIfAborted";
+  var W = () => void 0;
+  var { AbortController_: F, throwIfAborted_: I, installPolyfills: L } = B;
+  function N(e6, t10, r2) {
+    return t10 in e6 ? Object.defineProperty(e6, t10, { value: r2, enumerable: true, configurable: true, writable: true }) : e6[t10] = r2, e6;
+  }
+  var Z = Uint16Array;
+  var q = Uint8Array;
+  var j = DataView;
+  var $ = Int32Array;
+  var H = Uint32Array;
+  var { AbortController_: V, TransformStream_: Y, ReadableStream_: G, isReadableStream_: K, arrayBuffer_: X, responseAcceptsStream_: J, throwIfAborted_: Q, installPolyfills: ee } = B;
+  ee();
+  var et = B.DecompressionStream_;
+  var { max: er, min: ei, ceil: es, imul: el } = Math;
+  var { isInteger: en, isSafeInteger: eo, isFinite: ef, MAX_SAFE_INTEGER: ea } = Number;
+  var eh = ea - 56;
+  var eu = { Dos: 1, Unix: 2, Ntfs: 4 };
+  var ec = new TextEncoder();
+  var ed = new TextDecoder();
+  var ep = { encoding: "cp437", fatal: false, ignoreBOM: false, decode(e6) {
+    let t10 = "";
+    for (let r2 of e6) t10 += r2 < 128 ? String.fromCharCode(r2) : rn[r2 - 128];
+    return t10;
+  } };
+  var eg = (e6) => {
+    throw RangeError(e6);
+  };
+  var em = (e6) => {
+    throw Error(e6);
+  };
+  var ew = (e6, t10) => {
+    throw new DOMException(e6, t10);
+  };
+  var ey = null;
+  var eb = new q(0);
+  var ev = "InvalidStateError";
+  var ex = "NotSupportedError";
+  var eA = "SecurityError";
+  var eS = "E_CLOSED";
+  var eE = "E_MODE";
+  var ez = "E_LIMIT";
+  var eT = "E_LEVEL";
+  var eB = "E_ZIP64";
+  var e_ = "E_FIELD";
+  var eP = "E_STRUCTURE";
+  var eD = "E_PATH";
+  var eO = "E_TYPE";
+  var eU = "E_UNSUPPORTED";
+  var eC = "E_INFLATE";
+  var eM = "E_TIME";
+  var eR = "E_PERM";
+  var ek = "E_ATTR";
+  var eW = [3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31, 35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258];
+  var eF = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0];
+  var eI = [1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193, 257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577];
+  var eL = [0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13];
+  var eN = (() => {
+    let e6 = new H(2048), t10, r2, i2;
+    for (t10 = 256; t10--; e6[t10] = r2) for (r2 = t10, i2 = 8; i2--; ) r2 = r2 >>> 1 ^ (1 & r2) * 3988292384;
+    for (t10 = 256; t10--; ) for (r2 = e6[t10], i2 = 0; ++i2 < 8; ) e6[256 * i2 + t10] = r2 = e6[255 & r2] ^ r2 >>> 8;
+    return e6;
+  })();
+  var eZ = [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15];
+  var eq = new Z(0);
+  var ej = new q(0);
+  var e$ = false;
+  var eV = class {
+    e() {
+      this.closed && ew(eS, ev);
+    }
+    async add(e6) {
+      var t10;
+      for (let r2 of (this.e(), "sync" === this.mode && ew(eE, ev), this.mode = "async", await this.encoder.encodeEntry(e6))) null == (t10 = this.controller) || t10.enqueue(r2);
+    }
+    async close() {
+      var e6, t10;
+      for (let t11 of (this.e(), "sync" === this.mode && ew(eE, ev), this.closed = true, this.encoder.close())) null == (e6 = this.controller) || e6.enqueue(t11);
+      return (null == (t10 = this.controller) || t10.close(), "blob" === this.outputAs) ? J ? new Response(this.output, { headers: { "Content-Type": this.mimeType } }).blob() : new Blob([await tT(this.output, this.encoder.signal)], { type: this.mimeType }) : "response" === this.outputAs ? new Response(J ? this.output : await tT(this.output, this.encoder.signal), { headers: { "Content-Type": this.mimeType } }) : "uint8array" === this.outputAs ? tT(this.output, this.encoder.signal) : "arraybuffer" === this.outputAs ? tL(await tT(this.output, this.encoder.signal)) : this.output;
+    }
+    writeSync(e6) {
+      for (let t10 of (this.e(), "async" === this.mode && ew(eE, ev), this.mode = "sync", this.encoder.encodeEntrySync(e6))) this.collected.push(t10);
+    }
+    closeSync() {
+      var e6, t10;
+      for (let e10 of (this.e(), "async" === this.mode && ew(eE, ev), this.closed = true, this.encoder.close())) this.collected.push(e10);
+      let r2 = tI(this.collected);
+      return (this.collected = [], null == (e6 = this.controller) || e6.enqueue(r2), null == (t10 = this.controller) || t10.close(), "blob" === this.outputAs) ? new Blob([r2], { type: this.mimeType }) : "response" === this.outputAs ? new Response(r2, { headers: { "Content-Type": this.mimeType } }) : "uint8array" === this.outputAs ? r2 : "arraybuffer" === this.outputAs ? tL(r2) : this.output;
+    }
+    constructor(e6 = {}) {
+      N(this, "output", void 0), N(this, "encoder", void 0), N(this, "outputAs", void 0), N(this, "mimeType", void 0), N(this, "controller", void 0), N(this, "closed", false), N(this, "mode", ""), N(this, "collected", []);
+      let { outputAs: t10 = "stream", mimeType: r2 = "application/zip", ...i2 } = e6;
+      this.encoder = new eJ(i2), this.outputAs = t10, this.mimeType = r2, this.output = new G({ start: (e10) => {
+        this.controller = e10;
+      } });
+    }
+  };
+  var eY = (e6) => {
+    eG(e6.maxArchiveSize), eG(e6.maxEntrySize);
+  };
+  var eG = (e6) => {
+    void 0 !== e6 && (!ef(e6) || e6 < 0) && eg(ez);
+  };
+  var eX = async (e6, t10 = {}) => {
+    var r2, i2;
+    eY(t10), null == (r2 = t10.signal) || r2[Q]();
+    let s2 = e6 instanceof q ? e6 : new q(e6 instanceof ArrayBuffer ? e6 : await e6[X]());
+    return void 0 !== t10.maxArchiveSize && s2.length > t10.maxArchiveSize && eg(ez), null == (i2 = t10.onProgress) || i2.call(t10, { phase: "read", loaded: s2.length, total: s2.length }), new e1(e6 instanceof Blob ? e6 : void 0, tr(s2, t10), t10.maxEntrySize);
+  };
+  var eJ = class {
+    get signal() {
+      return this.options.signal;
+    }
+    async encodeEntry(e6) {
+      this.options.signal[Q]();
+      let t10 = this.reservePath(e6);
+      try {
+        let r2 = this.worker && await this.worker.prepare(e6, this.options, t10);
+        if (r2 && (r2.path !== t10 || r2.isDirectory !== t10.endsWith("/"))) throw TypeError("E_WORKER");
+        return this.commit(r2 || await e3(e6, this.options, t10));
+      } catch (e10) {
+        throw this.paths.delete(t10), e10;
+      }
+    }
+    encodeEntrySync(e6) {
+      this.options.signal[Q]();
+      let t10 = this.reservePath(e6);
+      try {
+        return this.commit(e4(e6, this.options, t10));
+      } catch (e10) {
+        throw this.paths.delete(t10), e10;
+      }
+    }
+    reservePath(e6) {
+      let t10 = e5(e6, this.options);
+      return this.paths.has(t10) && ew(eD, eA), this.paths.add(t10), t10;
+    }
+    commit(e6) {
+      let t10 = [];
+      if (this.options.explicitDirectoryEntries) for (let r2 of this.missingParentDirectories(e6.path)) this.paths.add(r2), t10.push(this.writePrepared(e7(r2, this.options)));
+      return t10.push(this.writePrepared(e6)), t10;
+    }
+    writePrepared(e6) {
+      let t10 = e9(e6, this.offset, this.options.zip64, this.options.timestamps, this.central);
+      return this.offset += t10.length, this.centralSize += this.central[this.central.length - 1].length, this.entries++, this.options.onProgress({ phase: "write", path: e6.path, loaded: this.offset, entries: this.entries }), t10;
+    }
+    missingParentDirectories(e6) {
+      let t10 = (e6.endsWith("/") ? e6.slice(0, -1) : e6).split("/"), r2 = [], i2 = "";
+      for (let e10 = 0; e10 < t10.length - 1; e10++) i2 += t10[e10] + "/", this.paths.has(i2) || r2.push(i2);
+      return r2;
+    }
+    close() {
+      for (let e6 of (this.options.signal[Q](), te(this.entries, this.centralSize, this.offset, this.options.zip64, this.options.comment))) this.central.push(e6);
+      return this.central;
+    }
+    constructor(e6) {
+      var t10, r2, i2, s2, l2, n2, o2, f2;
+      N(this, "options", void 0), N(this, "worker", void 0), N(this, "central", []), N(this, "paths", /* @__PURE__ */ new Set()), N(this, "offset", 0), N(this, "entries", 0), N(this, "centralSize", 0);
+      let { worker: a2, ...h2 } = e6;
+      this.worker = a2;
+      let u2 = null != (t10 = h2.level) ? t10 : 6;
+      (!en(u2) || u2 < 0 || u2 > 9) && eg(eT);
+      let c2 = null != (r2 = h2.timestamps) ? r2 : eu.Dos | eu.Unix;
+      (!en(c2) || c2 < 0 || c2 > 7) && eg(eE), this.options = { level: u2, zip64: null != (i2 = h2.zip64) ? i2 : "auto", comment: null != (s2 = h2.comment) ? s2 : "", timestamps: c2, pathMode: null != (l2 = h2.pathMode) ? l2 : "unsafe", signal: null != (n2 = h2.signal) ? n2 : new V().signal, onProgress: null != (o2 = h2.onProgress) ? o2 : () => void 0, explicitDirectoryEntries: null != (f2 = h2.explicitDirectoryEntries) && f2 };
+    }
+  };
+  var eQ = class {
+    read() {
+      return tl(this.entry, this.maxEntrySize);
+    }
+    stream() {
+      return this.guard(), tB(this.read());
+    }
+    async text() {
+      return this.guard(), ed.decode(await this.read());
+    }
+    async bytes() {
+      return this.guard(), this.read();
+    }
+    async arrayBuffer() {
+      return this.guard(), tL(await this.read());
+    }
+    constructor(e6, t10) {
+      N(this, "entry", void 0), N(this, "maxEntrySize", void 0), N(this, "path", void 0), N(this, "size", void 0), N(this, "compressedSize", void 0), N(this, "crc32", void 0), N(this, "isDirectory", void 0), N(this, "comment", void 0), N(this, "extraField", void 0), N(this, "modifiedAt", void 0), N(this, "createdAt", void 0), N(this, "lastAccess", void 0), N(this, "externalAttributes", void 0), this.entry = e6, this.maxEntrySize = t10, this.path = e6.path, this.size = e6.size, this.compressedSize = e6.compressedSize, this.crc32 = e6.crc32, this.isDirectory = e6.isDirectory, this.comment = e6.comment || void 0, this.extraField = e6.extraField.length ? e6.extraField : void 0, this.modifiedAt = e6.modifiedAt, this.createdAt = e6.createdAt, this.lastAccess = e6.lastAccess, this.externalAttributes = e6.externalAttributes;
+    }
+  };
+  var e1 = class {
+    get(e6) {
+      var t10;
+      return null != (t10 = this.latest.get(e6)) ? t10 : this.latest.get(t_(e6));
+    }
+    async close() {
+      this.closed = true, this.source = void 0, this.latest.clear();
+    }
+    constructor(e6, t10, r2) {
+      N(this, "source", void 0), N(this, "maxEntrySize", void 0), N(this, "comment", void 0), N(this, "entries", void 0), N(this, "closed", void 0), N(this, "latest", void 0), this.source = e6, this.maxEntrySize = r2, this.closed = false, this.latest = /* @__PURE__ */ new Map(), this.comment = t10.comment || void 0;
+      let i2 = t10.entries;
+      for (let e10 of (this.entries = i2.map((e11) => new e2(e11, () => {
+        this.closed && ew(eS, ev);
+      }, this.maxEntrySize)), this.entries)) this.latest.set(e10.path, e10);
+    }
+  };
+  var e2 = class extends eQ {
+    guard() {
+      this.e();
+    }
+    constructor(e6, t10, r2) {
+      super(e6, r2), N(this, "assertOpen", void 0), this.e = t10;
+    }
+  };
+  var e5 = (e6, t10) => {
+    var r2;
+    let i2 = null != (r2 = e6.level) ? r2 : t10.level;
+    return (!en(i2) || i2 < 0 || i2 > 9) && eg(eT), tD(t_(e6.path, e6.path.endsWith("/")), t10.pathMode);
+  };
+  var e3 = async (e6, t10, r2 = e5(e6, t10)) => {
+    let i2 = r2.endsWith("/"), s2 = i2 ? eb : await tn(e6.data, t10.signal, (e10, i3) => {
+      t10.onProgress({ phase: "read", path: r2, loaded: e10, total: i3 });
+    });
+    return e8(e6, t10, r2, i2, s2);
+  };
+  var e4 = (e6, t10, r2 = e5(e6, t10)) => {
+    let i2 = r2.endsWith("/"), s2 = i2 ? eb : to(e6.data, t10.signal);
+    return e8(e6, t10, r2, i2, s2);
+  };
+  var e8 = (e6, t10, r2, i2, s2) => {
+    var l2, n2, o2, f2, a2, h2;
+    let u2 = e6.meta, c2 = null != (l2 = null == u2 ? void 0 : u2.modifiedAt) ? l2 : /* @__PURE__ */ new Date(), d2 = (t10.timestamps & eu.Ntfs) != 0, p2 = null != (n2 = null == u2 ? void 0 : u2.createdAt) ? n2 : d2 ? c2 : void 0, g2 = null != (o2 = null == u2 ? void 0 : u2.lastAccess) ? o2 : d2 ? c2 : void 0;
+    tW(c2, p2, g2), tC(null == u2 ? void 0 : u2.unixPermissions, t10.timestamps), tM(null == u2 ? void 0 : u2.dosAttributes, t10.timestamps, i2);
+    let m2 = null != (f2 = null == u2 ? void 0 : u2.extraField) ? f2 : eb, w2 = tk(u2, i2, tR(u2, t10.timestamps, m2)), y2 = null != (a2 = e6.level) ? a2 : t10.level, b2 = e6.method, v2 = "store" === b2 || 0 === y2 && "deflate" !== b2 || i2 ? 0 : 8, x2 = 8 === v2 && s2.length > 0 ? tf(s2, y2) : s2;
+    return void 0 === b2 && 8 === v2 && x2.length >= s2.length && (v2 = 0, x2 = s2), t10.onProgress({ phase: "compress", path: r2, loaded: s2.length, total: s2.length }), { path: r2, isDirectory: i2, modifiedAt: c2, createdAt: p2, lastAccess: g2, comment: null != (h2 = null == u2 ? void 0 : u2.comment) ? h2 : "", extraField: m2, sourceSize: s2.length, compressed: x2, method: 0 === x2.length ? 0 : v2, crc32: tN(s2), externalAttributes: w2 };
+  };
+  var e7 = (e6, t10) => e8({ path: e6, data: eb }, t10, e6, true, eb);
+  var e9 = (e6, t10, r2, i2, s2) => {
+    let l2 = ec.encode(e6.path), n2 = ec.encode(e6.comment), o2 = tQ(e6.modifiedAt), f2 = "force" === r2 || e6.sourceSize > 4294967295 || e6.compressed.length > 4294967295 || t10 > 4294967295;
+    "off" === r2 && f2 && tt();
+    let a2 = i2 & eu.Unix && !tJ(e6.extraField, 21589) ? tH(e6.modifiedAt) : eb, h2 = eb;
+    i2 & eu.Ntfs && !tJ(e6.extraField, 10) && (h2 = tY(e6.modifiedAt, e6.createdAt, e6.lastAccess));
+    let u2 = tI([e6.extraField, f2 ? tZ([e6.sourceSize, e6.compressed.length]) : eb, a2, h2]), c2 = tI([e6.extraField, f2 ? tZ([e6.sourceSize, e6.compressed.length, t10]) : eb, a2, h2]);
+    l2.length > 65535 && eg(e_), n2.length > 65535 && eg(e_), (u2.length > 65535 || c2.length > 65535) && eg(e_);
+    let d2 = new q(30 + l2.length + u2.length + e6.compressed.length), p2 = new j(d2.buffer);
+    rt(p2, 0, 67324752), re(p2, 4, f2 ? 45 : 20), re(p2, 6, 2048), re(p2, 8, e6.method), re(p2, 10, o2.time), re(p2, 12, o2.date), rt(p2, 14, e6.crc32), rt(p2, 18, f2 ? 4294967295 : e6.compressed.length), rt(p2, 22, f2 ? 4294967295 : e6.sourceSize), re(p2, 26, l2.length), re(p2, 28, u2.length), d2.set(l2, 30), d2.set(u2, 30 + l2.length), d2.set(e6.compressed, 30 + l2.length + u2.length);
+    let g2 = new q(46 + l2.length + c2.length + n2.length), m2 = new j(g2.buffer);
+    return rt(m2, 0, 33639248), re(m2, 4, 3 * (e6.externalAttributes >>> 16 != 0) << 8 | 45), re(m2, 6, f2 ? 45 : 20), re(m2, 8, 2048), re(m2, 10, e6.method), re(m2, 12, o2.time), re(m2, 14, o2.date), rt(m2, 16, e6.crc32), rt(m2, 20, f2 ? 4294967295 : e6.compressed.length), rt(m2, 24, f2 ? 4294967295 : e6.sourceSize), re(m2, 28, l2.length), re(m2, 30, c2.length), re(m2, 32, n2.length), rt(m2, 38, e6.externalAttributes), rt(m2, 42, f2 ? 4294967295 : t10), g2.set(l2, 46), g2.set(c2, 46 + l2.length), g2.set(n2, 46 + l2.length + c2.length), s2.push(g2), d2;
+  };
+  var te = (e6, t10, r2, i2, s2) => {
+    let l2 = "force" === i2 || e6 > 65535 || r2 > 4294967295 || t10 > 4294967295;
+    "off" === i2 && l2 && tt();
+    let n2 = [], o2 = ec.encode(s2);
+    if (o2.length > 65535 && eg(e_), l2) {
+      let i3 = new q(56), s3 = new j(i3.buffer);
+      rt(s3, 0, 101075792), rr(s3, 4, 44), re(s3, 12, 45), re(s3, 14, 45), rr(s3, 24, e6), rr(s3, 32, e6), rr(s3, 40, t10), rr(s3, 48, r2), n2.push(i3);
+      let l3 = new q(20), o3 = new j(l3.buffer);
+      rt(o3, 0, 117853008), rr(o3, 8, r2 + t10), rt(o3, 16, 1), n2.push(l3);
+    }
+    let f2 = new q(22 + o2.length), a2 = new j(f2.buffer);
+    return rt(a2, 0, 101010256), re(a2, 8, l2 ? 65535 : e6), re(a2, 10, l2 ? 65535 : e6), rt(a2, 12, l2 ? 4294967295 : t10), rt(a2, 16, l2 ? 4294967295 : r2), re(a2, 20, o2.length), f2.set(o2, 22), n2.push(f2), n2;
+  };
+  var tt = () => eg(eB);
+  var tr = (e6, t10) => {
+    var r2, i2, s2, l2;
+    let n2 = t5(e6), o2 = t3(e6), f2 = null != (r2 = t10.filenameEncoding) ? r2 : "utf-8", a2 = "string" != typeof f2 ? f2 : (null == ey ? void 0 : ey.encoding) === f2 ? ey : ey = "utf-8" === f2 ? ed : "cp437" === f2 ? ep : new TextDecoder(f2), h2 = null != (i2 = t10.pathMode) ? i2 : "strict", u2 = "strict-package" === h2, c2 = t6(o2, n2 + 20), d2 = a2.decode(e6.subarray(n2 + 22, n2 + 22 + c2)), { entries: p2, centralOffset: g2, centralSize: m2 } = t1(o2, e6.length, n2), w2 = [], y2 = /* @__PURE__ */ new Set(), b2 = u2 ? /* @__PURE__ */ new Set() : void 0, v2 = g2, x2 = g2 + m2;
+    for (let r3 = 0; r3 < p2 && v2 < x2; r3++) {
+      null == (s2 = t10.signal) || s2[Q]();
+      let i3 = ti(e6, v2, a2);
+      y2.has(i3.localOffset) && em(eP), y2.add(i3.localOffset);
+      let n3 = e6.subarray(v2 + 46, v2 + 46 + t6(o2, v2 + 28)), f3 = ts(e6, i3, n3, u2, t8(o2, v2 + 20), t8(o2, v2 + 24)), c3 = tP(i3.path, h2);
+      if (b2) {
+        let e10 = c3.normalize("NFC").toLowerCase();
+        b2.has(e10) && em(eD), b2.add(e10);
+      }
+      i3.path = c3, i3.isDirectory || (i3.isDirectory = c3.endsWith("/")), i3.compressed = f3, w2.push(i3), v2 += 46 + t6(o2, v2 + 28) + t6(o2, v2 + 30) + t6(o2, v2 + 32), null == (l2 = t10.onProgress) || l2.call(t10, { phase: "parse", loaded: v2 - g2, total: m2, entries: r3 + 1 });
+    }
+    return w2.length !== p2 && em(eP), v2 !== x2 && em(eP), { comment: d2, entries: w2 };
+  };
+  var ti = (e6, t10, r2) => {
+    var i2, s2;
+    let l2 = t3(e6);
+    t4(e6.length, t10, 46), 33639248 !== t8(l2, t10) && em(eP);
+    let n2 = t6(l2, t10 + 8);
+    (1 & n2) != 0 && ew(eU, ex);
+    let o2 = t6(l2, t10 + 10);
+    0 !== o2 && 8 !== o2 && ew(eU, ex);
+    let f2 = t6(l2, t10 + 28), a2 = t6(l2, t10 + 30), h2 = t6(l2, t10 + 32), u2 = t10 + 46;
+    t4(e6.length, u2, f2 + a2 + h2);
+    let c2 = u2 + f2, d2 = c2 + a2, p2 = e6.subarray(c2, c2 + a2), g2 = t8(l2, t10 + 20), m2 = t8(l2, t10 + 24), w2 = t8(l2, t10 + 42), y2 = tq(p2);
+    4294967295 === m2 && void 0 !== y2 && (m2 = rs(y2.shift())), 4294967295 === g2 && void 0 !== y2 && (g2 = rs(y2.shift())), 4294967295 === w2 && (w2 = rs(null == y2 ? void 0 : y2.shift()));
+    let b2 = (2048 & n2) != 0 ? ed : r2, v2 = e6.subarray(u2, c2), x2 = null != (i2 = t$(p2, v2)) ? i2 : b2.decode(v2), A2 = tK(p2), S2 = void 0 !== A2 && void 0 !== A2.createdAt && void 0 !== A2.lastAccess, E2 = S2 && void 0 !== A2.modifiedAt ? A2.modifiedAt : S2 ? t0(t6(l2, t10 + 14), t6(l2, t10 + 12)) : null != (s2 = tX(p2)) ? s2 : t0(t6(l2, t10 + 14), t6(l2, t10 + 12));
+    return { path: x2, isDirectory: x2.endsWith("/") || (16 & t8(l2, t10 + 38)) != 0, modifiedAt: E2, createdAt: S2 ? A2.createdAt : void 0, lastAccess: S2 ? A2.lastAccess : void 0, comment: b2.decode(e6.subarray(d2, d2 + h2)), extraField: p2, method: o2, flags: n2, crc32: t8(l2, t10 + 16), compressedSize: g2, size: m2, localOffset: w2, externalAttributes: t8(l2, t10 + 38) };
+  };
+  var ts = (e6, t10, r2, i2, s2, l2) => {
+    let n2 = t3(e6), o2 = t10.localOffset;
+    t4(e6.length, o2, 30), 67324752 !== t8(n2, o2) && em(eP);
+    let f2 = t6(n2, o2 + 6);
+    ((f2 ^ t10.flags) & 9) != 0 && em(eP);
+    let a2 = t6(n2, o2 + 26), h2 = t6(n2, o2 + 28);
+    t4(e6.length, o2 + 30, a2), tj(e6.subarray(o2 + 30, o2 + 30 + a2), r2) || em(eP), i2 && ((f2 | t10.flags) & 8) == 0 && (t8(n2, o2 + 18) !== s2 || t8(n2, o2 + 22) !== l2) && em(eP);
+    let u2 = t8(n2, o2 + 18), c2 = t8(n2, o2 + 22);
+    4294967295 === t10.compressedSize && (((8 & f2) != 0 || 4294967295 === u2) && rl(), t10.compressedSize = u2), 4294967295 === t10.size && (((8 & f2) != 0 || 4294967295 === c2) && rl(), t10.size = c2);
+    let d2 = o2 + 30 + a2 + h2;
+    return t4(e6.length, d2, t10.compressedSize), e6.subarray(d2, d2 + t10.compressedSize);
+  };
+  var tl = async (e6, t10) => {
+    void 0 !== t10 && e6.size > t10 && eg(ez);
+    let r2 = 8 === e6.method ? await tv(e6.compressed, e6.size, t10) : e6.compressed;
+    return r2.length !== e6.size && em(eP), tN(r2) !== e6.crc32 && em("E_CRC"), r2;
+  };
+  var tn = async (e6, t10, r2) => {
+    if (null == t10 || t10[Q](), "string" == typeof e6) return ec.encode(e6);
+    if (e6 instanceof q) return e6;
+    if (e6 instanceof ArrayBuffer) return new q(e6);
+    if ("u" > typeof Blob && e6 instanceof Blob) return new q(await e6[X]());
+    if (K(e6)) return tT(e6, t10, r2);
+    throw TypeError(eO);
+  };
+  var to = (e6, t10) => {
+    if (null == t10 || t10[Q](), "string" == typeof e6) return ec.encode(e6);
+    if (e6 instanceof q) return e6;
+    if (e6 instanceof ArrayBuffer) return new q(e6);
+    throw TypeError(eO);
+  };
+  var tf = (T2, B2) => {
+    if (0 === T2.length) return eb;
+    (() => {
+      if (!e$) {
+        let T3, B3;
+        e$ = true, T3 = new $(288), (B3 = (e6, t10, r2, i2) => {
+          for (let s2 = 1 << i2 - 1, l2; t10--; ++e6) for (T3[e6] = r2 | i2 << 16, l2 = t10 && s2; l2 && !((r2 ^= l2) & l2); l2 >>= 1) ;
+        })(0, 144, 12, 8), B3(144, 112, 19, 9), B3(256, 24, 0, 7), B3(280, 8, 3, 8), s = T3, e = new Z(259);
+        for (let t10 = 0; t10 < eW.length; t10++) {
+          let r2 = eW[t10], i2 = r2 + (1 << eF[t10]) - 1;
+          for (let s2 = r2; s2 <= i2 && s2 <= 258; s2++) e[s2] = 257 + t10;
+        }
+        t = new Z(32769);
+        for (let e6 = 0; e6 < eI.length; e6++) {
+          let r2 = eI[e6], i2 = r2 + (1 << eL[e6]) - 1;
+          for (let s2 = r2; s2 <= i2 && s2 <= 32768; s2++) t[s2] = e6;
+        }
+        (r = new q(288)).fill(8, 0, 144), r.fill(9, 144, 256), r.fill(7, 256, 280), r.fill(8, 280, 288), i = $.from({ length: 30 }, (e6, t10) => t10 >> 4 | t10 >> 2 & 2 | 4 & t10 | t10 << 2 & 8 | t10 << 4 & 16 | 327680), l = new $(65536), n = new $(32768), o = new H(286), f = new H(30), a = new H(19), h = new $(16), u = new $(286), c = new $(30), d = new $(286), p = new $(30), g = new $(19), m = new $(286), w = new $(572), y = new $(572), b = new $(316), v = new $(316), x = new $(316), A = new $(316), S = new q(4), E = [], z = [];
+      }
+    })();
+    let _2 = ta(T2, B2), P2 = eq.subarray(0, T2.length), D2 = eq.subarray(T2.length, 2 * T2.length), O2 = new tx(T2.length), U2 = 0, C2 = 0;
+    for (let e6 = 0; e6 < _2; e6++) {
+      let t10 = E[e6], r2 = z[e6];
+      th(O2, T2, P2, D2, U2, t10, C2, r2, e6 === _2 - 1), U2 = t10, C2 = r2;
+    }
+    let M2 = O2.finish();
+    if (M2.length < T2.length) return M2;
+    let R2 = tb(T2);
+    return R2.length < M2.length ? R2 : M2;
+  };
+  var ta = (e6, t10) => {
+    var r2, i2, s2;
+    let o2 = l;
+    o2.fill(-1);
+    let f2 = n, a2 = null != (r2 = [0, 32, 48, 64, 96, 128, 160, 192, 224, 258][t10]) ? r2 : 128, h2 = null != (i2 = [0, 8, 16, 32, 64, 128, 256, 512, 1024, 4096][t10]) ? i2 : 128, u2 = null != (s2 = [0, 4, 4, 4, 4, 8, 8, 32, 32, 32][t10]) ? s2 : 8, c2 = e6.length;
+    eq.length < 2 * c2 && (eq = new Z(2 * c2));
+    let d2 = eq.subarray(0, c2), p2 = eq.subarray(c2, 2 * c2), g2 = E;
+    g2.length = 0;
+    let m2 = z;
+    m2.length = 0;
+    let w2 = 0, y2 = 0, b2 = 0;
+    for (; y2 < c2; ) {
+      let r3 = tA(e6, y2, o2, f2, a2, h2, c2), i3 = 511 & r3;
+      if (t10 >= 4 && i3 >= 3 && i3 < u2 && y2 + 1 < c2 && (511 & tE(e6, y2 + 1, o2[tz(e6, y2 + 1)], f2, a2, h2 >>> 2, c2)) > i3 && (r3 = 0, i3 = 0), i3 >= 3) {
+        d2[w2] = i3, p2[w2] = r3 >>> 9, w2++;
+        let t11 = ei(y2 + i3, c2 - 3);
+        for (let r4 = y2 + 1; r4 < t11; r4++) tS(e6, r4, o2, f2);
+        y2 += i3;
+      } else d2[w2] = e6[y2], p2[w2] = 0, w2++, y2++;
+      w2 - b2 >= 16384 && y2 < c2 && (g2.push(w2), m2.push(y2), b2 = w2);
+    }
+    return g2.push(w2), m2.push(c2), g2.length;
+  };
+  var th = (l2, n2, h2, m2, w2, y2, E2, z2, T2) => {
+    let B2, _2, P2, D2 = o;
+    D2.fill(0);
+    let O2 = f;
+    O2.fill(0);
+    let U2 = 0;
+    for (let r2 = w2; r2 < y2; r2++) {
+      let i2 = m2[r2], s2 = h2[r2];
+      if (0 === i2) D2[s2]++;
+      else {
+        let r3 = e[s2];
+        D2[r3]++, U2 += eF[r3 - 257];
+        let l3 = t[i2];
+        O2[l3]++, U2 += eL[l3];
+      }
+    }
+    D2[256]++;
+    let C2 = 0;
+    for (let e6 = 286; e6--; ) C2 += D2[e6] * r[e6];
+    for (let e6 = 30; e6--; ) C2 += 5 * O2[e6];
+    let M2 = 1 / 0, R2 = 0, k2 = 0, W2 = 0, F2 = 0, I2 = td(D2, 15, d), L2 = td(O2, 15, p);
+    if (I2 && L2) {
+      for (B2 = I2, _2 = L2, k2 = B2.length; k2 > 257 && 0 === B2[k2 - 1]; ) k2--;
+      for (W2 = _2.length; W2 > 1 && 0 === _2[W2 - 1]; ) W2--;
+      1 === W2 && 0 === _2[0] && (_2[0] = 1);
+      let e6 = 0;
+      for (let t11 = 0; t11 < k2; t11++) b[e6++] = B2[t11];
+      for (let t11 = 0; t11 < W2; t11++) b[e6++] = _2[t11];
+      R2 = ty(b, e6);
+      let t10 = a;
+      t10.fill(0);
+      for (let e10 = R2; e10--; ) t10[v[e10]]++;
+      let r2 = td(t10, 7, g);
+      if (r2) {
+        for (P2 = r2, F2 = eZ.length; F2 > 4 && 0 === P2[eZ[F2 - 1]]; ) F2--;
+        let e10 = 14 + 3 * F2;
+        for (let t12 = R2; t12--; ) e10 += P2[v[t12]] + A[t12];
+        let t11 = 0;
+        for (let e11 = 286; e11--; ) t11 += D2[e11] * B2[e11];
+        for (let e11 = 30; e11--; ) t11 += O2[e11] * _2[e11];
+        M2 = e10 + t11;
+      }
+    }
+    let N2 = M2 < C2, Z2 = 3 + U2 + (N2 ? M2 : C2), q2 = z2 - E2, j2 = 8 - (l2.pendingBits() + 3 & 7) & 7;
+    if (l2.writeBits(+!!T2, 1), (q2 <= 65535 ? 3 + j2 + 32 + 8 * q2 : 1 / 0) <= Z2) {
+      l2.writeBits(0, 2), l2.alignToByte(), S[0] = 255 & q2, S[1] = q2 >>> 8 & 255, S[2] = 255 & ~q2, S[3] = ~q2 >>> 8 & 255, l2.writeBytes(S), l2.writeBytes(n2.subarray(E2, z2));
+      return;
+    }
+    if (N2) {
+      l2.writeBits(2, 2), l2.writeBits(k2 - 257, 5), l2.writeBits(W2 - 1, 5), l2.writeBits(F2 - 4, 4);
+      for (let e10 = 0; e10 < F2; e10++) l2.writeBits(P2[eZ[e10]], 3);
+      let e6 = tg(P2, u);
+      for (let t10 = 0; t10 < R2; t10++) tm(l2, e6, v[t10]), A[t10] && l2.writeBits(x[t10], A[t10]);
+      tu(l2, h2, m2, w2, y2, tg(B2, u), tg(_2, c));
+    } else l2.writeBits(1, 2), tu(l2, h2, m2, w2, y2, s, i);
+  };
+  var tu = (r2, i2, s2, l2, n2, o2, f2) => {
+    for (let a2 = l2; a2 < n2; a2++) {
+      let l3 = s2[a2], n3 = i2[a2];
+      if (0 === l3) tm(r2, o2, n3);
+      else {
+        let i3 = e[n3];
+        tm(r2, o2, i3);
+        let s3 = eF[i3 - 257];
+        s3 && r2.writeBits(n3 - eW[i3 - 257], s3);
+        let a3 = t[l3];
+        tm(r2, f2, a3);
+        let h2 = eL[a3];
+        h2 && r2.writeBits(l3 - eI[a3], h2);
+      }
+    }
+    tm(r2, o2, 256);
+  };
+  var tc = (e6, t10, r2, i2) => {
+    let s2, l2 = e6[i2], n2 = t10[l2];
+    for (; (s2 = 2 * i2 + 1) < r2; i2 = s2) {
+      let o2 = e6[s2];
+      if (s2 + 1 < r2) {
+        let r3 = e6[s2 + 1];
+        (t10[r3] < t10[o2] || t10[r3] === t10[o2] && r3 < o2) && (s2++, o2 = r3);
+      }
+      if (!(t10[o2] < n2 || t10[o2] === n2 && o2 < l2)) break;
+      e6[i2] = o2;
+    }
+    e6[i2] = l2;
+  };
+  var td = (e6, t10, r2) => {
+    let i2 = e6.length;
+    r2.fill(0, 0, i2);
+    let s2 = m, l2 = w, n2 = y, o2 = 0, f2 = 0;
+    for (let t11 = 0; t11 < i2; t11++) {
+      let r3 = e6[t11];
+      0 !== r3 && (s2[f2++] = o2, n2[o2] = r3, l2[o2] = -1, o2++);
+    }
+    if (0 === f2) return r2;
+    if (1 === f2) {
+      for (let t11 = 0; t11 < i2; t11++) if (e6[t11] > 0) {
+        r2[t11] = 1;
+        break;
+      }
+      return r2;
+    }
+    let a2 = f2;
+    for (let e10 = (a2 >> 1) - 1; e10 >= 0; e10--) tc(s2, n2, a2, e10);
+    for (; a2 > 1; ) {
+      let e10 = s2[0];
+      s2[0] = s2[--a2], tc(s2, n2, a2, 0);
+      let t11 = s2[0], r3 = o2++;
+      l2[e10] = r3, l2[t11] = r3, l2[r3] = -1, n2[r3] = n2[e10] + n2[t11], s2[0] = r3, tc(s2, n2, a2, 0);
+    }
+    n2[o2 - 1] = 0;
+    for (let e10 = o2 - 2; e10 >= 0; e10--) n2[e10] = n2[l2[e10]] + 1;
+    let h2 = 0, u2 = false;
+    for (let s3 = 0; s3 < i2; s3++) {
+      if (0 === e6[s3]) continue;
+      let i3 = n2[h2++];
+      r2[s3] = i3, i3 > t10 && (u2 = true);
+    }
+    return u2 && tp(e6, t10, r2), r2;
+  };
+  var tp = (e6, t10, r2) => {
+    let i2 = [];
+    for (let t11 = 0; t11 < e6.length; t11++) r2[t11] = 0, e6[t11] && i2.push(t11);
+    i2.sort((t11, r3) => e6[t11] - e6[r3]);
+    let s2 = i2.length;
+    if (s2 < 2) {
+      s2 && (r2[i2[0]] = 1);
+      return;
+    }
+    let l2 = 2 * s2 - 2, n2, o2, f2, a2, h2, u2, c2, d2, p2, g2 = d2 = i2.map((t11) => e6[t11]), m2 = [new q(s2).fill(1)];
+    for (n2 = t10; --n2; ) for (a2 = d2.length, m2.push(p2 = new q(s2 + a2--)), c2 = d2, d2 = [], o2 = f2 = h2 = 0; o2 < s2 || f2 < a2; d2[h2++] = u2) u2 = f2 < a2 ? c2[f2] + c2[f2 + 1] : 1 / 0, o2 < s2 && g2[o2] <= u2 ? (p2[h2] = 1, u2 = g2[o2++]) : f2 += 2;
+    for (n2 = t10; n2--; ) {
+      for (a2 = ei(l2, (p2 = m2[n2]).length), o2 = f2 = 0; o2 < a2; ) p2[o2++] && r2[i2[f2++]]++;
+      l2 = 2 * (l2 - f2);
+    }
+  };
+  var tg = (e6, t10) => {
+    let r2 = e6.length, i2 = h, s2 = 0, l2, n2, o2;
+    for (i2.fill(0), l2 = r2; l2--; ) (n2 = e6[l2]) ? (i2[n2]++, n2 > s2 && (s2 = n2)) : t10[l2] = 0;
+    for (let e10 = 1, t11 = 0; e10 <= s2; e10++) for (l2 = i2[e10], i2[e10] = t11; l2--; t11 ^= o2) for (o2 = 1 << e10 - 1; t11 & o2; o2 >>= 1) t11 ^= o2;
+    for (l2 = 0; l2 < r2; l2++) if (n2 = e6[l2]) {
+      for (t10[l2] = (s2 = i2[n2]) | n2 << 16, o2 = 1 << n2 - 1; s2 & o2; o2 >>= 1) s2 ^= o2;
+      i2[n2] = s2 ^ o2;
+    }
+    return t10;
+  };
+  var tm = (e6, t10, r2) => {
+    let i2 = t10[r2];
+    0 === i2 && tw(), e6.writeBits(65535 & i2, i2 >>> 16);
+  };
+  var tw = () => eg(eP);
+  var ty = (e6, t10) => {
+    let r2 = 0, i2 = 0;
+    for (; i2 < t10; ) {
+      let s2 = e6[i2], l2 = 1;
+      for (; i2 + l2 < t10 && e6[i2 + l2] === s2; ) l2++;
+      if (i2 += l2, 0 === s2) {
+        for (; l2 >= 11; ) {
+          let e10 = ei(l2, 138);
+          v[r2] = 18, x[r2] = e10 - 11, A[r2] = 7, r2++, l2 -= e10;
+        }
+        l2 >= 3 && (v[r2] = 17, x[r2] = l2 - 3, A[r2] = 3, r2++, l2 = 0);
+      } else for (v[r2] = s2, x[r2] = 0, A[r2] = 0, r2++, l2--; l2 >= 3; ) {
+        let e10 = ei(l2, 6);
+        v[r2] = 16, x[r2] = e10 - 3, A[r2] = 2, r2++, l2 -= e10;
+      }
+      for (; l2-- > 0; ) v[r2] = s2, x[r2] = 0, A[r2] = 0, r2++;
+    }
+    return r2;
+  };
+  var tb = (e6) => {
+    let t10 = er(1, es(e6.length / 65535)), r2 = new q(e6.length + 5 * t10), i2 = 0, s2 = 0;
+    do {
+      let t11 = ei(65535, e6.length - i2), l2 = i2 + t11 >= e6.length;
+      r2[s2++] = +!!l2, r2[s2++] = 255 & t11, r2[s2++] = t11 >>> 8, r2[s2++] = 255 & ~t11, r2[s2++] = ~t11 >>> 8 & 255, r2.set(e6.subarray(i2, i2 + t11), s2), i2 += t11, s2 += t11;
+    } while (i2 < e6.length);
+    return r2;
+  };
+  var tv = async (e6, t10, r2) => {
+    let i2, s2;
+    et || ew(eU, ex);
+    try {
+      i2 = new G({ start(t11) {
+        t11.enqueue(e6), t11.close();
+      } }).pipeThrough(new et("deflate-raw", r2));
+    } catch {
+      return ew(eU, ex);
+    }
+    try {
+      s2 = await tT(i2, void 0, void 0, r2);
+    } catch (e10) {
+      if (e10 instanceof RangeError) throw e10;
+      return em(eC);
+    }
+    return s2.length !== t10 && em(eC), s2;
+  };
+  var tx = class {
+    writeBits(e6, t10) {
+      let r2 = this.bitBuffer | e6 << this.bitCount, i2 = this.bitCount + t10;
+      if (i2 >= 8) {
+        let e10 = this.offset, t11 = this.out;
+        if (e10 + 4 > t11.length) {
+          let e11 = new q(2 * t11.length);
+          e11.set(t11), this.out = t11 = ej = e11;
+        }
+        do
+          t11[e10++] = 255 & r2, r2 >>>= 8, i2 -= 8;
+        while (i2 >= 8);
+        this.offset = e10;
+      }
+      this.bitBuffer = r2, this.bitCount = i2;
+    }
+    finish() {
+      return this.bitCount > 0 && this.pushByte(), this.out.slice(0, this.offset);
+    }
+    pendingBits() {
+      return this.bitCount;
+    }
+    alignToByte() {
+      this.bitCount > 0 && this.pushByte();
+    }
+    writeBytes(e6) {
+      let t10 = this.offset + e6.length;
+      if (t10 > this.out.length) {
+        let e10 = this.out.length;
+        do
+          e10 *= 2;
+        while (e10 < t10);
+        let r2 = new q(e10);
+        r2.set(this.out), this.out = ej = r2;
+      }
+      this.out.set(e6, this.offset), this.offset += e6.length;
+    }
+    pushByte() {
+      if (this.offset === this.out.length) {
+        let e10 = new q(2 * this.out.length);
+        e10.set(this.out), this.out = ej = e10;
+      }
+      let e6 = 255 & this.bitBuffer;
+      this.out[this.offset++] = e6, this.bitBuffer = 0, this.bitCount = 0;
+    }
+    constructor(e6) {
+      N(this, "out", void 0), N(this, "offset", 0), N(this, "bitBuffer", 0), N(this, "bitCount", 0);
+      let t10 = er(64, e6 + (e6 >>> 3) + 1024);
+      ej.length < t10 && (ej = new q(t10)), this.out = ej;
+    }
+  };
+  var tA = (e6, t10, r2, i2, s2, l2, n2) => {
+    if (t10 + 4 > n2) return 0;
+    let o2 = tz(e6, t10), f2 = r2[o2];
+    return i2[32767 & t10] = f2, r2[o2] = t10, tE(e6, t10, f2, i2, s2, l2, n2);
+  };
+  var tS = (e6, t10, r2, i2) => {
+    let s2 = tz(e6, t10);
+    i2[32767 & t10] = r2[s2], r2[s2] = t10;
+  };
+  var tE = (e6, t10, r2, i2, s2, l2, n2) => {
+    let o2 = 258, f2 = n2 - t10;
+    if (f2 < 258 && (o2 = f2), o2 < 3) return 0;
+    let a2 = 0, h2 = 0;
+    for (; r2 >= 0 && r2 < t10 && t10 - r2 <= 32768 && l2-- > 0; ) {
+      if (e6[r2 + a2] === e6[t10 + a2] && e6[r2] === e6[t10] && e6[r2 + 1] === e6[t10 + 1] && e6[r2 + 2] === e6[t10 + 2]) {
+        let i3 = 3;
+        for (; i3 < o2 && e6[r2 + i3] === e6[t10 + i3]; ) i3++;
+        if (i3 > a2 && (a2 = i3, h2 = t10 - r2, i3 >= s2 || i3 === o2)) break;
+      }
+      r2 = i2[32767 & r2];
+    }
+    return a2 >= 3 ? h2 << 9 | a2 : 0;
+  };
+  var tz = (e6, t10) => el(e6[t10] << 24 | e6[t10 + 1] << 16 | e6[t10 + 2] << 8 | e6[t10 + 3], 2654435761) >>> 16;
+  var tT = async (e6, t10, r2, i2) => {
+    let s2 = e6.getReader(), l2 = [], n2 = 0;
+    try {
+      for (; ; ) {
+        null == t10 || t10[Q]();
+        let { done: e10, value: o2 } = await s2.read();
+        if (e10) break;
+        l2.push(o2), n2 += o2.length, void 0 !== i2 && n2 > i2 && eg(ez), null == r2 || r2(n2);
+      }
+    } catch (e10) {
+      throw await s2.cancel(e10).catch(() => void 0), e10;
+    }
+    return tI(l2, n2);
+  };
+  var tB = (e6) => new G({ async start(t10) {
+    t10.enqueue(await e6), t10.close();
+  } });
+  var t_ = (e6, t10 = false) => {
+    let r2 = e6.replace(/\\/g, "/").replace(/^\/+/, "");
+    return t10 && !r2.endsWith("/") ? `${r2}/` : r2;
+  };
+  var tP = (e6, t10) => {
+    if ("unsafe" === t10) return e6;
+    let r2 = tU(e6);
+    return ("strict" === t10 || "strict-package" === t10) && (tO(e6) || r2 !== t_(e6, e6.endsWith("/"))) && ew(eD, eA), r2 || ew(eD, eA), r2;
+  };
+  var tD = (e6, t10) => {
+    if ("strict" === t10 || "strict-package" === t10) return tO(e6) && ew(eD, eA), e6;
+    if ("sanitize" === t10) {
+      let t11 = tU(e6);
+      return t11 || ew(eD, eA), t11;
+    }
+    return e6;
+  };
+  var tO = (e6) => {
+    let t10 = e6.replace(/\\/g, "/");
+    return e6.includes("\\") || e6.includes("\0") || t10.startsWith("/") || /^[a-zA-Z]:/.test(t10) || t10.split("/").some((e10) => ".." === e10);
+  };
+  var tU = (e6) => {
+    let t10 = e6.replace(/\\/g, "/").replace(/\u0000/g, "").replace(/^[a-zA-Z]:\/*/, "").replace(/^\/+/, ""), r2 = t10.endsWith("/"), i2 = [];
+    for (let e10 of t10.split("/")) e10 && "." !== e10 && ".." !== e10 && i2.push(e10);
+    return i2.length ? `${i2.join("/")}${r2 ? "/" : ""}` : "";
+  };
+  var tC = (e6, t10) => {
+    void 0 !== e6 && ((!en(e6) || e6 < 0 || e6 > 511) && eg(eR), (t10 & eu.Unix) == 0 && eg(eR));
+  };
+  var tM = (e6, t10, r2) => {
+    void 0 !== e6 && ((!en(e6) || e6 < 0 || e6 > 255) && eg(ek), (t10 & eu.Unix) != 0 && (t10 & eu.Ntfs) == 0 && eg(ek), (16 & e6) != 0 !== r2 && eg(ek));
+  };
+  var tR = (e6, t10, r2) => (null == e6 ? void 0 : e6.unixPermissions) !== void 0 || (t10 & eu.Unix) != 0 || tJ(r2, 21589);
+  var tk = (e6, t10, r2) => {
+    var i2;
+    let s2;
+    if ((null == e6 ? void 0 : e6.externalAttributes) !== void 0) return e6.externalAttributes >>> 0;
+    let l2 = (((null != (i2 = null == e6 ? void 0 : e6.dosAttributes) ? i2 : 0) | 16 * !!t10) & 255) >>> 0;
+    return r2 ? ((65535 & ((t10 ? 16384 : 32768) | (null != (s2 = null == e6 ? void 0 : e6.unixPermissions) ? s2 : t10 ? 493 : 420))) << 16 | l2) >>> 0 : l2;
+  };
+  var tW = (e6, t10, r2) => {
+    if (tF(e6), void 0 !== t10 && tF(t10), void 0 !== r2 && tF(r2), void 0 === t10) return;
+    let i2 = t10.getTime();
+    e6.getTime() < i2 && eg(eM), void 0 !== r2 && r2.getTime() < i2 && eg(eM);
+  };
+  var tF = (e6) => {
+    let t10 = e6.getTime();
+    (!ef(t10) || t10 < 0) && eg(eM);
+  };
+  var tI = (e6, t10) => {
+    let r2 = new q(null != t10 ? t10 : e6.reduce((e10, t11) => e10 + t11.length, 0)), i2 = 0;
+    for (let t11 of e6) r2.set(t11, i2), i2 += t11.length;
+    return r2;
+  };
+  var tL = (e6) => 0 === e6.byteOffset && e6.byteLength === e6.buffer.byteLength ? e6.buffer : e6.buffer.slice(e6.byteOffset, e6.byteOffset + e6.byteLength);
+  var tN = (e6) => {
+    let t10 = e6.length, r2 = t10 - 8, i2 = -1, s2 = 0;
+    for (; s2 <= r2; ) i2 ^= e6[s2] | e6[s2 + 1] << 8 | e6[s2 + 2] << 16 | e6[s2 + 3] << 24, i2 = eN[1792 + (255 & i2)] ^ eN[1536 + (i2 >>> 8 & 255)] ^ eN[1280 + (i2 >>> 16 & 255)] ^ eN[1024 + (i2 >>> 24)] ^ eN[768 + e6[s2 + 4]] ^ eN[512 + e6[s2 + 5]] ^ eN[256 + e6[s2 + 6]] ^ eN[e6[s2 + 7]], s2 += 8;
+    for (; s2 < t10; s2++) i2 = eN[(i2 ^ e6[s2]) & 255] ^ i2 >>> 8;
+    return ~i2 >>> 0;
+  };
+  var tZ = (e6) => {
+    let t10 = 8 * e6.length, r2 = new q(4 + t10), i2 = new j(r2.buffer);
+    re(i2, 0, 1), re(i2, 2, t10);
+    for (let t11 = 0; t11 < e6.length; t11++) rr(i2, 4 + 8 * t11, e6[t11]);
+    return r2;
+  };
+  var tq = (e6) => {
+    let t10 = t3(e6), r2 = 0;
+    for (; r2 + 4 <= e6.length; ) {
+      let i2 = t6(t10, r2), s2 = t6(t10, r2 + 2), l2 = r2 + 4;
+      if (1 === i2) {
+        let r3 = l2 + s2, i3 = [];
+        if (r3 > e6.length) return i3;
+        for (let e10 = l2; e10 + 8 <= r3; e10 += 8) i3.push(t7(t10, e10));
+        return i3;
+      }
+      r2 = l2 + s2;
+    }
+  };
+  var tj = (e6, t10) => {
+    if (e6.length !== t10.length) return false;
+    for (let r2 = e6.length; r2--; ) if (e6[r2] !== t10[r2]) return false;
+    return true;
+  };
+  var t$ = (e6, t10) => {
+    let r2 = t3(e6), i2 = 0;
+    for (; i2 + 4 <= e6.length; ) {
+      let s2 = t6(r2, i2), l2 = t6(r2, i2 + 2), n2 = i2 + 4, o2 = n2 + l2;
+      if (o2 > e6.length) break;
+      if (28789 === s2 && l2 >= 5 && 1 === e6[n2]) {
+        if (t8(r2, n2 + 1) === tN(t10)) return ed.decode(e6.subarray(n2 + 5, o2));
+        break;
+      }
+      i2 = o2;
+    }
+  };
+  var tH = (e6) => {
+    let t10 = Math.floor(e6.getTime() / 1e3);
+    if (!ef(t10) || t10 < 0 || t10 > 4294967295) return eb;
+    let r2 = new q(9), i2 = new j(r2.buffer);
+    return re(i2, 0, 21589), re(i2, 2, 5), r2[4] = 1, rt(i2, 5, t10), r2;
+  };
+  var tV = (e6, t10, r2) => {
+    let i2 = r2.getTime(), s2 = (ef(i2) ? i2 : 0) + 116444736e5, l2 = Math.floor(s2 / 4294967296), n2 = s2 % 4294967296 * 1e4, o2 = Math.floor(n2 / 4294967296);
+    e6.setUint32(t10, n2 % 4294967296 >>> 0, true), e6.setUint32(t10 + 4, 1e4 * l2 + o2 >>> 0, true);
+  };
+  var tY = (e6, t10, r2) => {
+    let i2 = new q(36), s2 = new j(i2.buffer);
+    return re(s2, 0, 10), re(s2, 2, 32), re(s2, 8, 1), re(s2, 10, 24), tV(s2, 12, e6), tV(s2, 20, r2), tV(s2, 28, t10), i2;
+  };
+  var tG = (e6, t10) => {
+    let r2 = t8(e6, t10), i2 = t8(e6, t10 + 4);
+    if (0 !== r2 || 0 !== i2) return new Date((4294967296 * i2 + r2) / 1e4 - 116444736e5);
+  };
+  var tK = (e6) => {
+    let t10 = t3(e6), r2 = 0;
+    for (; r2 + 4 <= e6.length; ) {
+      let i2 = t6(t10, r2), s2 = t6(t10, r2 + 2), l2 = r2 + 4, n2 = l2 + s2;
+      if (n2 > e6.length) break;
+      if (10 === i2) {
+        let e10 = l2 + 4;
+        for (; e10 + 4 <= n2; ) {
+          let r3 = t6(t10, e10), i3 = t6(t10, e10 + 2), s3 = e10 + 4;
+          if (1 === r3 && i3 >= 24 && s3 + 24 <= n2) return { modifiedAt: tG(t10, s3), lastAccess: tG(t10, s3 + 8), createdAt: tG(t10, s3 + 16) };
+          e10 = s3 + i3;
+        }
+        break;
+      }
+      r2 = n2;
+    }
+  };
+  var tX = (e6) => {
+    let t10 = t3(e6), r2 = 0;
+    for (; r2 + 4 <= e6.length; ) {
+      let i2 = t6(t10, r2), s2 = t6(t10, r2 + 2), l2 = r2 + 4, n2 = l2 + s2;
+      if (n2 > e6.length) break;
+      if (21589 === i2 && s2 >= 5 && (1 & e6[l2]) != 0) return new Date(1e3 * t8(t10, l2 + 1));
+      r2 = n2;
+    }
+  };
+  var tJ = (e6, t10) => {
+    let r2 = t3(e6), i2 = 0;
+    for (; i2 + 4 <= e6.length; ) {
+      let s2 = t6(r2, i2), l2 = t6(r2, i2 + 2), n2 = i2 + 4 + l2;
+      if (n2 > e6.length) break;
+      if (s2 === t10) return true;
+      i2 = n2;
+    }
+    return false;
+  };
+  var tQ = (e6) => ({ date: ei(127, er(0, e6.getFullYear() - 1980)) << 9 | e6.getMonth() + 1 << 5 | e6.getDate(), time: e6.getHours() << 11 | e6.getMinutes() << 5 | e6.getSeconds() >> 1 });
+  var t0 = (e6, t10) => new Date((e6 >>> 9 & 127) + 1980, (e6 >>> 5 & 15 || 1) - 1, 31 & e6 || 1, t10 >>> 11 & 31, t10 >>> 5 & 63, (31 & t10) << 1);
+  var t1 = (e6, t10, r2) => {
+    let i2 = t6(e6, r2 + 10), s2 = t8(e6, r2 + 12), l2 = t8(e6, r2 + 16), n2 = r2, o2 = r2 - 20, f2 = o2 >= 0 && 117853008 === t8(e6, o2);
+    if (4294967295 === s2 || 4294967295 === l2 || 65535 === i2 && f2) {
+      f2 || em(eB);
+      let r3 = t7(e6, o2 + 8);
+      t4(t10, r3, 56), 101075792 !== t8(e6, r3) && em(eB), i2 = t7(e6, r3 + 32), s2 = t7(e6, r3 + 40), l2 = t7(e6, r3 + 48), n2 = r3;
+    }
+    return t4(t10, l2, s2), { entries: i2, centralOffset: l2, centralSize: s2, anchor: n2 };
+  };
+  var t2 = (e6, t10, r2, i2) => {
+    let s2;
+    try {
+      s2 = t1(e6, t10, r2);
+    } catch {
+      return -1;
+    }
+    let { entries: l2, centralOffset: n2, centralSize: o2, anchor: f2 } = s2;
+    if (n2 + o2 !== f2) return -1;
+    let a2 = n2 + o2, h2 = n2, u2 = 0;
+    for (; u2 < l2 && h2 < a2; ) {
+      if (i2.n-- <= 0 || h2 + 46 > a2 || 33639248 !== t8(e6, h2)) return -1;
+      h2 += 46 + t6(e6, h2 + 28) + t6(e6, h2 + 30) + t6(e6, h2 + 32), u2++;
+    }
+    return u2 === l2 && h2 === a2 ? l2 : -1;
+  };
+  var t5 = (e6) => {
+    let t10 = t3(e6), r2 = e6.length, i2 = r2 - 22, s2 = er(0, i2 - 65535), l2 = -1, n2 = -1, o2 = { n: (r2 / 46 | 0) + 1 };
+    for (let e10 = i2; e10 >= s2; e10--) {
+      if (101010256 !== t8(t10, e10)) continue;
+      let i3 = e10 + 22 + t6(t10, e10 + 20) === r2;
+      n2 < 0 && i3 && (n2 = e10);
+      let s3 = t2(t10, r2, e10, o2);
+      if (s3 > 0) return e10;
+      0 === s3 && i3 && l2 < 0 && (l2 = e10);
+    }
+    return l2 >= 0 ? l2 : n2 >= 0 ? n2 : em(eP);
+  };
+  var t3 = (e6) => new j(e6.buffer, e6.byteOffset, e6.byteLength);
+  var t4 = (e6, t10, r2) => {
+    (!eo(t10) || !eo(r2) || t10 < 0 || r2 < 0 || t10 + r2 > e6) && em("E_BOUNDS");
+  };
+  var t6 = (e6, t10) => e6.getUint16(t10, true);
+  var t8 = (e6, t10) => e6.getUint32(t10, true);
+  var t7 = (e6, t10) => {
+    let r2 = e6.getUint32(t10, true), i2 = 4294967296 * e6.getUint32(t10 + 4, true) + r2;
+    return i2 > eh && t9(), i2;
+  };
+  var t9 = () => em(eB);
+  var re = (e6, t10, r2) => {
+    e6.setUint16(t10, r2, true);
+  };
+  var rt = (e6, t10, r2) => {
+    e6.setUint32(t10, r2 >>> 0, true);
+  };
+  var rr = (e6, t10, r2) => {
+    (!eo(r2) || r2 < 0) && ri(), e6.setUint32(t10, r2 >>> 0, true), e6.setUint32(t10 + 4, r2 / 4294967296 >>> 0, true);
+  };
+  var ri = () => em(eB);
+  var rs = (e6) => (void 0 === e6 && rl(), e6);
+  var rl = () => em(eB);
+  var rn = [..."\xC7\xFC\xE9\xE2\xE4\xE0\xE5\xE7\xEA\xEB\xE8\xEF\xEE\xEC\xC4\xC5\xC9\xE6\xC6\xF4\xF6\xF2\xFB\xF9\xFF\xD6\xDC\xA2\xA3\xA5\u20A7\u0192\xE1\xED\xF3\xFA\xF1\xD1\xAA\xBA\xBF\u2310\xAC\xBD\xBC\xA1\xAB\xBB\u2591\u2592\u2593\u2502\u2524\u2561\u2562\u2556\u2555\u2563\u2551\u2557\u255D\u255C\u255B\u2510\u2514\u2534\u252C\u251C\u2500\u253C\u255E\u255F\u255A\u2554\u2569\u2566\u2560\u2550\u256C\u2567\u2568\u2564\u2565\u2559\u2558\u2552\u2553\u256B\u256A\u2518\u250C\u2588\u2584\u258C\u2590\u2580\u03B1\xDF\u0393\u03C0\u03A3\u03C3\xB5\u03C4\u03A6\u0398\u03A9\u03B4\u221E\u03C6\u03B5\u2229\u2261\xB1\u2265\u2264\u2320\u2321\xF7\u2248\xB0\u2219\xB7\u221A\u207F\xB2\u25A0 "];
+
+  // src/exp_imp.ts
+  function getOrInsert(map, key, value) {
+    if (map.has(key)) {
+      return map.get(key);
+    } else {
+      map.set(key, value);
+      return value;
+    }
+  }
+  var META_TABLE = "Meta";
+  var COL_VERSION = "Version";
+  var COL_TEMPLATE_ID = "TemplateId";
+  var ConsoleOutput = class {
+    begin(title, info) {
+      console.info("> begin output");
+      console.info(`title: ${title}`);
+      if (info !== void 0) {
+        this.next(info);
+      }
+    }
+    next(info) {
+      if (info !== void 0) {
+        console.info(`* info: ${info}`);
+      }
+    }
+    end() {
+      console.info("> end output");
+    }
+  };
+  var ArchiveCreator = class {
+    docApi;
+    output;
+    constructor(docApi, output) {
+      this.docApi = docApi;
+      this.output = output;
+    }
+    async create() {
+      console.info("Creating archive...");
+      const writer = new eV({ outputAs: "blob" });
+      this.output.next("Ajout des tables");
+      await this.#addTables(writer);
+      this.output.next("Ajout des PJ");
+      await this.#addAttachments(writer);
+      this.output.next("\xC9criture du zip");
+      return await writer.close();
+    }
+    async #addTables(writer) {
+      const tablesIds = await this.docApi.listTables();
+      for (const tableId of tablesIds) {
+        await writer.add({
+          path: `table/${tableId}.json`,
+          data: JSON.stringify(await this.docApi.fetchTable(tableId))
+        });
+      }
+      console.info("Tables %s ajout\xE9es", tablesIds);
+    }
+    async #addAttachments(writer) {
+      const colsIdsByTableId = await this.#findColsIdsByTableId();
+      const attachmentNameById = await this.#findAttachmentNameById();
+      const tokenInfo = await this.docApi.getAccessToken({ readOnly: true });
+      const addedAttachmentIds = /* @__PURE__ */ new Set();
+      for (let [tableId, colsIds] of colsIdsByTableId) {
+        const table = await this.docApi.fetchTable(tableId);
+        for (const colId of colsIds) {
+          let col = table[colId];
+          for (let attachmentsIds of col) {
+            if (attachmentsIds === null || attachmentsIds === void 0) {
+              continue;
+            }
+            if (!Array.isArray(attachmentsIds)) {
+              console.error(`Value ${attachmentsIds} is not an array`);
+              continue;
+            }
+            for (let attachmentId of attachmentsIds.slice(1)) {
+              if (addedAttachmentIds.has(attachmentId)) {
+                continue;
+              }
+              let attachmentName = attachmentNameById.get(attachmentId);
+              const getURL = `${tokenInfo.baseUrl}/attachments/${attachmentId}/download?auth=${tokenInfo.token}`;
+              let response = await fetch(getURL);
+              if (!response.ok) {
+                console.error(response.statusText);
+                continue;
+              }
+              let blob = await response.blob();
+              let bytes = await blob.bytes();
+              let data = {
+                name: attachmentName,
+                type: blob.type
+              };
+              let jsonStr = JSON.stringify(data);
+              console.info("Export", attachmentId, jsonStr);
+              await writer.add({
+                path: `attachment/${attachmentId}/meta.json`,
+                data: jsonStr
+              });
+              await writer.add({
+                path: `attachment/${attachmentId}/${attachmentName}`,
+                data: bytes
+              });
+              addedAttachmentIds.add(attachmentId);
+            }
+          }
+        }
+      }
+    }
+    async #findColsIdsByTableId() {
+      const colsIdsByTableId = /* @__PURE__ */ new Map();
+      const gristColumns = await this.docApi.fetchTable("_grist_Tables_column");
+      const gristTables = await this.docApi.fetchTable("_grist_Tables");
+      gristColumns.parentId.forEach((parentId, index, _arr) => {
+        if (gristColumns.type[index] === "Attachments") {
+          const tableIndex = gristTables.id.findIndex((id) => id === parentId);
+          const tableId = gristTables.tableId[tableIndex];
+          const colsIds = getOrInsert(colsIdsByTableId, tableId, []);
+          colsIds.push(gristColumns.colId[index]);
+        }
+      });
+      return colsIdsByTableId;
+    }
+    async #findAttachmentNameById() {
+      const attachmentNameById = /* @__PURE__ */ new Map();
+      const gristAttachments = await this.docApi.fetchTable("_grist_Attachments");
+      gristAttachments.id.forEach((id, index, _arr) => {
+        attachmentNameById.set(id, gristAttachments.fileName[index]);
+      });
+      return attachmentNameById;
+    }
+  };
+  var DefaultArchiveExporter = class {
+    output;
+    constructor(output) {
+      this.output = output;
+    }
+    async exportArchive(zipContent) {
+      this.output.next("Export...");
+      const suggestedName = this.getArchiveName();
+      this.#download(zipContent, suggestedName);
+    }
+    getArchiveName() {
+      let dateStr = (/* @__PURE__ */ new Date()).toISOString();
+      return `export_${dateStr}.zip`;
+    }
+    #download(zipContent, suggestedName) {
+      const url = URL.createObjectURL(zipContent);
+      const a2 = document.createElement("a");
+      a2.href = url;
+      a2.download = suggestedName;
+      document.body.appendChild(a2);
+      a2.click();
+      URL.revokeObjectURL(url);
+      document.body.removeChild(a2);
+    }
+  };
+  var Archive = class {
+    tableById;
+    attachmentDataById;
+    importOptions;
+    constructor(tableById, attachmentDataById) {
+      this.tableById = tableById;
+      this.attachmentDataById = attachmentDataById;
+      this.importOptions = {
+        "ignoreMeta": true,
+        // ignore the Meta table from the archive
+        "ignoreExtraTables": true,
+        // ignore tables from the archive that are not in the document
+        "ignoreMissingCols": true,
+        // ignore cols from the document that are not in the archive
+        "ignoreFormulas": true
+        // // ignore the formula cols from the archive
+      };
+    }
+    get version() {
+      return this.meta.Version;
+    }
+    get templateId() {
+      return this.meta.TemplateId;
+    }
+    get meta() {
+      let meta = this.tableById.get(META_TABLE);
+      if (meta === void 0) {
+        throw new Error("Meta table not found");
+      }
+      if (!(COL_TEMPLATE_ID in meta && COL_VERSION in meta)) {
+        throw new Error("Meta table missing mandatory columns");
+      }
+      return Object.fromEntries(
+        Object.entries(meta).map(([key, values]) => [key, values[0]])
+      );
+    }
+    get tablesIds() {
+      return this.tableById.keys().filter((tableId) => tableId !== META_TABLE);
+    }
+    tableEntries() {
+      return this.tableById.entries().filter(([tableId, _table], _tableIdx) => tableId !== META_TABLE);
+    }
+    // begin user funcs
+    filterRows(tableId, func) {
+      const table = this.tableById.get(tableId);
+      if (table === void 0) {
+        console.warn(`Table ${tableId} not found`);
+        return;
+      }
+      const rows = this.#tableToRows(table);
+      const newRows = rows.filter((row) => func(row));
+      const newTable = this.#rowsToTable(newRows);
+      this.tableById.set(tableId, newTable);
+    }
+    mapRows(tableId, func) {
+      const table = this.tableById.get(tableId);
+      if (table === void 0) {
+        console.warn(`Table ${tableId} not found`);
+        return;
+      }
+      const rows = this.#tableToRows(table);
+      const newRows = rows.map((row) => func(row));
+      const newTable = this.#rowsToTable(newRows);
+      this.tableById.set(tableId, newTable);
+    }
+    renameCols(tableId, newNameByOldName) {
+      const table = this.tableById.get(tableId);
+      if (table === void 0) {
+        console.warn(`Table ${tableId} not found`);
+        return;
+      }
+      const newTable = { id: [] };
+      const keys = Object.keys(table);
+      keys.forEach((key) => {
+        let newKey = newNameByOldName[key];
+        if (newKey === void 0) {
+          newKey = key;
+        }
+        newTable[newKey] = table[key];
+      });
+      this.tableById.set(tableId, newTable);
+    }
+    removeCols(tableId, colNames) {
+      const table = this.tableById.get(tableId);
+      if (table === void 0) {
+        console.warn(`Table ${tableId} not found`);
+        return;
+      }
+      const newTable = { id: [] };
+      const keys = Object.keys(table);
+      keys.forEach((key) => {
+        if (!colNames.includes(key)) {
+          newTable[key] = table[key];
+        }
+      });
+      this.tableById.set(tableId, newTable);
+    }
+    renameTable(srcTableId, destTableId) {
+      const table = this.tableById.get(srcTableId);
+      if (table === void 0) {
+        console.warn(`Table ${srcTableId} not found`);
+        return;
+      }
+      this.tableById.delete(srcTableId);
+      this.tableById.set(destTableId, table);
+    }
+    removeTable(srcTableId) {
+      this.tableById.delete(srcTableId);
+    }
+    duplicateTable(curTableId, newTableId) {
+      const table = this.tableById.get(curTableId);
+      if (table === void 0) {
+        console.warn(`Table ${curTableId} not found`);
+        return;
+      }
+      this.tableById.set(newTableId, structuredClone(table));
+    }
+    // end user funcs
+    #tableToRows(table) {
+      let keys = Object.keys(table);
+      const rows = Array();
+      table.id.forEach((_id, index, _arr) => {
+        const row = Object.fromEntries(keys.map((k2) => [k2, table[k2][index]]));
+        rows.push(row);
+      });
+      return rows;
+    }
+    #rowsToTable(rows) {
+      console.assert(rows.length > 0);
+      const table = { id: [] };
+      const keys = Object.keys(rows[0]);
+      if (!("id" in keys)) {
+        throw new Error(`key id not found in "${keys}"`);
+      }
+      keys.forEach((key) => {
+        table[key] = [];
+      });
+      rows.forEach((row) => {
+        keys.forEach((key) => {
+          table[key].push(row[key]);
+        });
+      });
+      return table;
+    }
+  };
+  var ArchiveReader = class {
+    output;
+    constructor(output) {
+      this.output = output;
+    }
+    async readFromEvent(event) {
+      this.output.next("Lecture depuis la balise 'input'");
+      console.log("Read...");
+      const file = this.#getFile(event);
+      if (file === null) {
+        return null;
+      }
+      this.output.next(`Fichier : ${file.name}`);
+      try {
+        const zip = await eX(file, {
+          pathMode: "strict-package",
+          maxArchiveSize: 50 * 1024 * 1024,
+          maxEntrySize: 10 * 1024 * 1024
+        });
+        return await this.readZip(zip);
+      } catch (error) {
+        this.importErr(error);
+        return null;
+      }
+    }
+    #getFile(event) {
+      const input = event.target;
+      if (input === null) {
+        return null;
+      }
+      const files = input.files;
+      if (files === null || files.length === 0) {
+        return null;
+      }
+      return files[0];
+    }
+    async readZip(zip) {
+      const tableById = /* @__PURE__ */ new Map();
+      const attachmentDataById = /* @__PURE__ */ new Map();
+      for (const entry of zip.entries) {
+        const path = entry.path;
+        let arr = path.split("/");
+        if (arr.length <= 1) {
+          console.error("Weird entry", path);
+          continue;
+        }
+        const type = arr[0];
+        if (type === "table") {
+          const data = await this.#getJSONData(zip, path);
+          if (data === null) {
+            continue;
+          }
+          const tableId = arr[1].replace(/\.[^/.]+$/, "");
+          tableById.set(tableId, data);
+        } else if (type === "attachment" && arr.length === 3) {
+          const attachmentId = parseInt(arr[1]);
+          if (Number.isNaN(attachmentId)) {
+            console.error("Weird entry", path);
+            continue;
+          }
+          const attachmentData = getOrInsert(attachmentDataById, attachmentId, {
+            name: "",
+            type: "",
+            bytes: []
+          });
+          if (arr[2] === "meta.json") {
+            const data = await this.#getJSONData(zip, path);
+            if (data === null) {
+              continue;
+            }
+            attachmentData.name = data.name;
+            attachmentData.type = data.type;
+          } else {
+            const bytes = await zip.get(path)?.bytes();
+            if (bytes === null) {
+              continue;
+            }
+            attachmentData.bytes = bytes;
+          }
+        } else {
+          console.error("Weird entry", path);
+        }
+      }
+      return new Archive(tableById, attachmentDataById);
+    }
+    async #getJSONData(zip, path) {
+      const jsonStr = await zip.get(path)?.text();
+      if (jsonStr === void 0) {
+        console.error("Can't read data");
+        return null;
+      }
+      try {
+        return JSON.parse(jsonStr);
+      } catch (e6) {
+        console.error("Bad JSON data", e6);
+        return null;
+      }
+    }
+    importErr(error) {
+      window.alert("Can't read zip file");
+      console.error("Can't read zip file", error);
+    }
+  };
+  var ArchiveImporterFactory = class {
+    async create(docApi, parameters) {
+      const tokenInfo = await docApi.getAccessToken({ readOnly: false });
+      const colInfoByColIdByTableId = await this.findColInfoByColIdByTableId(docApi);
+      return new ArchiveImporter(docApi, colInfoByColIdByTableId, tokenInfo, parameters);
+    }
+    async findColInfoByColIdByTableId(docApi) {
+      const colTypeByColIdByTableId = /* @__PURE__ */ new Map();
+      const gristColumns = await docApi.fetchTable("_grist_Tables_column");
+      const gristTables = await docApi.fetchTable("_grist_Tables");
+      gristColumns.parentId.forEach((parentId, index, _arr) => {
+        const tableIndex = gristTables.id.findIndex((id) => id === parentId);
+        const tableId = gristTables.tableId[tableIndex];
+        const colTypeByColId = getOrInsert(colTypeByColIdByTableId, tableId, /* @__PURE__ */ new Map());
+        const colId = gristColumns.colId[index];
+        const colType = gristColumns.type[index];
+        const isFormula = gristColumns.isFormula[index];
+        const formula = gristColumns.formula[index];
+        const hasTriggerFormula = !isFormula && formula !== "";
+        let colInfo = {
+          "colType": colType,
+          "isFormula": isFormula,
+          "hasTriggerFormula": hasTriggerFormula
+        };
+        colTypeByColId.set(colId, colInfo);
+      });
+      return colTypeByColIdByTableId;
+    }
+  };
+  var ArchiveImporter = class {
+    docApi;
+    colInfoByColIdByTableId;
+    tokenInfo;
+    parameters;
+    constructor(docApi, colInfoByColIdByTableId, tokenInfo, parameters) {
+      this.docApi = docApi;
+      this.colInfoByColIdByTableId = colInfoByColIdByTableId;
+      this.tokenInfo = tokenInfo;
+      this.parameters = parameters;
+    }
+    async importArchive(archive) {
+      const output = this.parameters.output;
+      output.next(`Version de l'archive ${archive.templateId} v.${archive.version}`);
+      console.log("Importing...", archive.version);
+      output.next("Initialisation");
+      await this.parameters.before(this.docApi);
+      output.next("Pr\xE9paration de l'archive");
+      await this.parameters.prepareArchive(archive, await this.fetchMeta(), this.parameters.output);
+      await this.#writeArchive(archive);
+      output.next("Finalisation");
+      await this.parameters.after(this.docApi);
+    }
+    async fetchMeta() {
+      let meta = await this.docApi.fetchTable(META_TABLE);
+      if (meta === void 0) {
+        throw new Error("Meta table not found");
+      }
+      if (!(COL_TEMPLATE_ID in meta && COL_VERSION in meta)) {
+        throw new Error("Meta table missing mandatory columns");
+      }
+      return Object.fromEntries(
+        Object.entries(meta).map(([key, values]) => [key, values[0]])
+      );
+    }
+    async #writeArchive(archive) {
+      const output = this.parameters.output;
+      output.next("\xC9criture des tables (sans les r\xE9f\xE9rences)");
+      const addActions = await this.#buildAddActions(archive);
+      const result = await this.docApi.applyUserActions(addActions);
+      console.info(`Actions: ${addActions.length} tables added`);
+      const newIdsByTableId = this.buildNewIdsByTableId(addActions, result.retValues);
+      const newIdByOldIdByTableId = this.buildNewIdByOldIdByTableId(archive, newIdsByTableId);
+      console.info(newIdByOldIdByTableId);
+      output.next("\xC9criture des colonnes r\xE9f\xE9rences");
+      const updateRefsActions = await this.#buildUpdateRefsActions(
+        archive,
+        newIdsByTableId,
+        newIdByOldIdByTableId
+      );
+      await this.docApi.applyUserActions(updateRefsActions);
+      console.info(`Actions: ${updateRefsActions.length} tables fixed`);
+      output.next("\xC9criture des colonnes formule d'initialisation");
+      const updateTriggerActions = await this.#buildUpdateTriggerActions(
+        archive,
+        newIdsByTableId
+      );
+      await this.docApi.applyUserActions(updateTriggerActions);
+      console.info(`Trigger formulas: ${updateTriggerActions.length} tables fixed`);
+    }
+    async #buildAddActions(archive) {
+      const output = this.parameters.output;
+      const importOptions = archive.importOptions;
+      const addActions = Array();
+      for (let tableId of archive.tablesIds) {
+        output.next(`Table : ${tableId}`);
+        if (tableId === META_TABLE) {
+          if (importOptions.ignoreMeta) {
+            console.warn(`Ignore table Meta from the archive`);
+            continue;
+          }
+        }
+        if (!this.colInfoByColIdByTableId.has(tableId)) {
+          if (importOptions.ignoreExtraTables) {
+            console.warn(`Ignore extra table ${tableId} from the archive`);
+            continue;
+          } else {
+            throw Error();
+          }
+        }
+        const colInfoByColId = this.colInfoByColIdByTableId.get(tableId);
+        if (colInfoByColId === void 0) {
+          continue;
+        }
+        const table = archive.tableById.get(tableId);
+        if (table === void 0) {
+          continue;
+        }
+        const records = await this.#buildRecords(archive, colInfoByColId, table);
+        const values = Object.values(records)[0];
+        const nulls = Array(values.length).fill(null);
+        addActions.push(["BulkAddRecord", tableId, nulls, records]);
+      }
+      console.log(addActions);
+      return addActions;
+    }
+    async #buildUpdateRefsActions(archive, newIdsByTableId, newIdByOldIdByTableId) {
+      const updateActions = Array();
+      const refListRegexp = new RegExp("^RefList:(.*)$");
+      const refRegexp = new RegExp("^Ref:(.*)$");
+      for (let [tableId, table] of archive.tableEntries()) {
+        let colInfoByColId = this.colInfoByColIdByTableId.get(tableId);
+        if (colInfoByColId === void 0) {
+          continue;
+        }
+        const records = {};
+        for (let [colId, colInfo] of colInfoByColId.entries()) {
+          const refListM = colInfo.colType.match(refListRegexp);
+          if (refListM !== null) {
+            const refTableId = refListM[1];
+            console.log("RefList", tableId, colId, "->", refTableId);
+            const newIdByOldId = newIdByOldIdByTableId.get(refTableId);
+            if (newIdByOldId === void 0) {
+              continue;
+            }
+            const newValues = [];
+            let col = table[colId];
+            for (let arr of col) {
+              if (arr === null || arr === void 0) {
+                newValues.push(null);
+              } else {
+                console.assert(arr[0] === "L");
+                let ids = arr.slice(1);
+                let newArr = ["L"];
+                ids.forEach((oldId, index, _arr) => {
+                  const newId = newIdByOldId.get(oldId);
+                  if (newId != void 0) {
+                    newArr.push(newId);
+                  }
+                });
+                newValues.push(newArr);
+              }
+            }
+            records[colId] = newValues;
+          } else {
+            const refM = colInfo.colType.match(refRegexp);
+            if (refM !== null) {
+              const refTableId = refM[1];
+              console.log("Ref", tableId, colId, "->", refTableId);
+              const newIdByOldId = newIdByOldIdByTableId.get(refTableId);
+              if (newIdByOldId === void 0) {
+                continue;
+              }
+              let newIds = [];
+              let col = table[colId];
+              for (let oldId of col) {
+                let newId;
+                if (oldId === null) {
+                  newId = null;
+                } else {
+                  newId = newIdByOldId.get(oldId);
+                }
+                newIds.push(newId);
+              }
+              records[colId] = newIds;
+            }
+          }
+        }
+        if (Object.keys(records).length > 0) {
+          const newIds = newIdsByTableId.get(tableId);
+          updateActions.push(["BulkUpdateRecord", tableId, newIds, records]);
+        }
+      }
+      console.log(updateActions);
+      return updateActions;
+    }
+    buildNewIdByOldIdByTableId(archive, newIdsByTableId) {
+      const newIdByOldIdByTableId = /* @__PURE__ */ new Map();
+      for (let [tableId, table] of archive.tableEntries()) {
+        const newIds = newIdsByTableId.get(tableId);
+        if (newIds === void 0) {
+          continue;
+        }
+        const newIdByOldId = getOrInsert(newIdByOldIdByTableId, tableId, /* @__PURE__ */ new Map());
+        table.id.forEach((id, index) => {
+          newIdByOldId.set(id, newIds[index]);
+        });
+      }
+      console.log(newIdByOldIdByTableId);
+      return newIdByOldIdByTableId;
+    }
+    buildNewIdsByTableId(actions, results) {
+      const newIdsByTableId = /* @__PURE__ */ new Map();
+      actions.forEach((action, index) => {
+        const tableId = action[1];
+        const newIds = results[index];
+        newIdsByTableId.set(tableId, newIds);
+      });
+      return newIdsByTableId;
+    }
+    async #buildRecords(archive, colInfoByColId, table) {
+      const attachmentDataById = archive.attachmentDataById;
+      const options = archive.importOptions;
+      const records = {};
+      for (let [colId, colInfo] of colInfoByColId) {
+        const values = table[colId];
+        if (values === void 0) {
+          if (options.ignoreMissingCols) {
+            console.warn(`Ignore missing col ${colId} in the archive`);
+            continue;
+          } else {
+            throw new Error();
+          }
+        }
+        if (colInfo.isFormula) {
+          if (options.ignoreFormulas) {
+            console.warn(`Ignore formula col ${colId} from the archive`);
+            continue;
+          } else {
+            throw new Error();
+          }
+        }
+        if (colInfo.colType.startsWith("Ref:") || colInfo.colType.startsWith("RefList:")) {
+          console.info(`First pass: ignore ref col: ${colId} (${colInfo.colType})`);
+          continue;
+        } else if (colInfo.hasTriggerFormula) {
+          console.info(`First pass: ignore col with trigger formula: ${colId} (${colInfo.colType})`);
+          continue;
+        }
+        let newValues;
+        if (colInfo.colType === "Attachments") {
+          newValues = await this.#uploadAttachments(values, attachmentDataById);
+        } else {
+          newValues = table[colId];
+        }
+        records[colId] = newValues;
+      }
+      return records;
+    }
+    async #buildUpdateTriggerActions(archive, newIdsByTableId) {
+      const newIdByOldIdByTableId = this.buildNewIdByOldIdByTableId(archive, newIdsByTableId);
+      console.info(newIdByOldIdByTableId);
+      const updateActions = Array();
+      for (let [tableId, table] of archive.tableEntries()) {
+        let colInfoByColId = this.colInfoByColIdByTableId.get(tableId);
+        if (colInfoByColId === void 0) {
+          continue;
+        }
+        const records = {};
+        for (let [colId, colInfo] of colInfoByColId.entries()) {
+          if (colInfo.hasTriggerFormula) {
+            records[colId] = table[colId];
+          }
+        }
+        if (Object.keys(records).length > 0) {
+          updateActions.push(["BulkUpdateRecord", tableId, newIdsByTableId.get(tableId), records]);
+        }
+      }
+      console.log(updateActions);
+      return updateActions;
+    }
+    async #uploadAttachments(values, attachmentDataById) {
+      const newValues = Array();
+      for (let arr of values) {
+        if (arr === null) {
+          newValues.push(null);
+        } else {
+          console.assert(arr[0] === "L");
+          let col = arr.slice(1);
+          const newArr = ["L"];
+          for (let attachmentId of col) {
+            const attachmentData = attachmentDataById.get(attachmentId);
+            if (attachmentData === void 0) {
+              continue;
+            }
+            const newId = await this.#uploadAttachment(attachmentData);
+            if (newId > 0) {
+              newArr.push(newId);
+            } else {
+              console.error(attachmentData.name);
+            }
+          }
+          newValues.push(newArr);
+        }
+      }
+      return newValues;
+    }
+    async #uploadAttachment(data) {
+      const formData = new FormData();
+      const attachmentName = data.name;
+      const blob = new Blob([data.bytes], { type: data.type });
+      formData.append("upload", blob, attachmentName);
+      const postURL = `${this.tokenInfo.baseUrl}/attachments?auth=${this.tokenInfo.token}`;
+      const response = await fetch(postURL, {
+        method: "POST",
+        body: formData,
+        headers: {
+          "X-Requested-With": "XMLHttpRequest"
+        }
+      });
+      if (!response.ok) {
+        console.error(`Upload \xE9chou\xE9: ${response.status} ${response.statusText}`);
+        return -1;
+      }
+      console.log(`Upload ${attachmentName}`);
+      const result = await response.json();
+      return result[0];
+    }
+    async getCurTemplateId() {
+      const metaTable = await this.docApi.fetchTable(META_TABLE);
+      return metaTable[COL_TEMPLATE_ID][0];
+    }
+    async getCurVersion() {
+      const metaTable = await this.docApi.fetchTable(META_TABLE);
+      return metaTable[COL_VERSION][0];
+    }
+  };
+  grist.ready({
+    requiredAccess: "full"
+  });
+  async function main(userParameters) {
+    const docApi = grist.docApi;
+    console.error(userParameters);
+    const parameters = {
+      ...defaultExpImpParameters,
+      ...userParameters
+    };
+    async function exportArchive(_event) {
+      const output = parameters.output;
+      console.error("OUT**");
+      console.error(output);
+      output.begin("Export de l'archive");
+      const archiveCreator = new ArchiveCreator(docApi, output);
+      const zipContent = await archiveCreator.create();
+      const archiveExporter = new DefaultArchiveExporter(output);
+      await archiveExporter.exportArchive(zipContent);
+      output.next("Termin\xE9");
+      output.end();
+    }
+    async function importArchive(event) {
+      const output = parameters.output;
+      output.begin("Import de l'archive");
+      const reader = new ArchiveReader(output);
+      const archive = await reader.readFromEvent(event);
+      if (archive === null) {
+        console.error(`Can't load archive`);
+        return;
+      }
+      const archiveImporter = await new ArchiveImporterFactory().create(docApi, parameters);
+      await archiveImporter.importArchive(archive);
+      output.next("Termin\xE9");
+      output.end();
+    }
+    const exportElement = document.getElementById(parameters.exportId);
+    if (exportElement === null) {
+      console.warn(`No ${parameters.exportId} element found`);
+    } else {
+      exportElement.onclick = exportArchive;
+    }
+    const importElement = document.getElementById(parameters.importId);
+    if (importElement === null) {
+      console.warn(`No ${parameters.importId} element found`);
+    } else {
+      importElement.onchange = importArchive;
+    }
+  }
+  function defaultGetArchiveName() {
+    let dateStr = (/* @__PURE__ */ new Date()).toISOString();
+    return `export_${dateStr}.zip`;
+  }
+  async function defaultBefore(docApi) {
+  }
+  async function defaultPrepareArchive(archive, meta, output) {
+    if (archive.templateId !== meta.TemplateId || archive.version > meta.Version) {
+      output.begin("Erreur", `Impossible d'importer un outil de type ${archive.templateId} v.${archive.version}`);
+      throw Error(`Wrong archive ${archive.templateId}`);
+    }
+  }
+  async function defaultAfter(docApi) {
+  }
+  var defaultImportOptions = {
+    "ignoreMeta": true,
+    // ignore the Meta table from the archive
+    "ignoreExtraTables": true,
+    // ignore tables from the archive that are not in the document
+    "ignoreMissingCols": true,
+    // ignore cols from the document that are not in the archive
+    "ignoreFormulas": true
+    // // ignore the formula cols from the archive
+  };
+  var defaultExpImpParameters = {
+    "exportId": "export",
+    "importId": "import",
+    "output": new ConsoleOutput(),
+    "getArchiveName": defaultGetArchiveName,
+    "before": defaultBefore,
+    "prepareArchive": defaultPrepareArchive,
+    "after": defaultAfter,
+    "options": defaultImportOptions
+  };
+  function register(parameters) {
+    document.addEventListener("DOMContentLoaded", (_event) => main(parameters));
+  }
+  return __toCommonJS(exp_imp_exports);
+})();
+//# sourceMappingURL=exp_imp.js.map
+
+/*****************************************************************************************************
+ * END exp_imp.js
+ *****************************************************************************************************/
+
+/* BEGIN USER CODE */
+class DocumentOutput {
+    constructor(doc) {
+        this.titleElement = doc.getElementById("titre");
+        this.ulElement = doc.getElementById("info");
+        this.modalDialog = doc.getElementById("modal");
+    }
+
+    begin(title, info) {
+        this.titleElement.innerHTML = title;
+        this.ulElement.innerHTML = '';
+        this.next(info)
+        dsfr(this.modalDialog).modal.disclose();
+    }
+
+    next(info) {
+        if (info !== undefined) {
+            this.ulElement.innerHTML += `<li>${info}</li>`;
+        }
+    }
+
+    end() {}
+}
+
+function getArchiveName() {
+    let dateStr = new Date().toISOString();
+    return `my_export_${dateStr}.zip`;
+}
+
+async function prepareArchive(archive, meta, output) {
+    // use:
+    // mapRows(tableId, func)
+    // renameCols(tableId, newNameByOldName)
+    // removeCols(tableId, colNames)
+    // renameTable(srcTableId, destTableId)
+    // removeTable(srcTableId)
+    // duplicateTable(curTableId, newTableId)
+    // to update the archive
+}
+
+expimp.register({
+    "output": new DocumentOutput(window.document),
+    "getArchiveName": getArchiveName,
+    "prepareArchive": prepareArchive,
+});
+
+/* END USER CODE */
+</script>
+    <script src=" https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.15.4/dist/dsfr.module.min.js"></script>
+    <link href=" https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.15.4/dist/dsfr.min.css" rel="stylesheet">
+</head>
+<body>
+<div id="root" class="fr-grid-row fr-grid-row--gutters fr-mb-12v">
+    <div class="fr-col-12 fr-col-lg-4">
+        <h2>Widget Export-import</h2>
+        <p>
+          Cet exemple montre comment configurer le code HTML et JavaScript pour obtenir un rendu
+          conforme au DSFR.
+        </p>
+        <p>
+          C'est un exemple minimal. Il n'y a aucun traitement avant l'import.
+          Si vous exportez puis importez, vous constaterez que les lignes sont doublonnées.
+          Les références sont cependant indépendantes et les images copiées.
+        </p>
+        <h3>Importer</h3>
+        <p>Le bouton "Exporter les données" s'utilise depuis le document à mettre à jour.
+          Il doit avoir l'attribut <code>id="export"</code>.</p>
+        <button id="export" class="fr-btn" type="button">
+            Exporter les données
+        </button>
+        <h3>Importer</h3>
+        <p>Le bouton "Importer les données" s'utilise depuis un document vierge (vous venez juste d'instancer le nouveau modèle). Il doit avoir l'attribut <code>id="import"</code>.</p>
+        <label class="fr-label" for="import">
+            Importer les données
+            <span class="fr-hint-text">Fichier ZIP exporté depuis l'ancienne version.</span>
+        </label>
+        <input id="import" class="fr-upload" aria-describedby="file-upload-messages" type="file" name="file-upload">
+        <div class="fr-messages-group" id="file-upload-messages" aria-live="polite"></div>
+    </div>
+</div>
+<dialog id="modal" class="fr-modal" aria-labelledby="titre" data-fr-concealing-backdrop="true">
+    <div class="fr-container fr-container--fluid fr-container-md">
+        <div class="fr-grid-row fr-grid-row--center">
+            <div class="fr-col-12 fr-col-md-8 fr-col-lg-6">
+                <div class="fr-modal__body">
+                    <div class="fr-modal__header">
+                        <button aria-controls="modal" title="Fermer" type="button" id="button-modal"
+                                class="fr-btn--close fr-btn">Fermer
+                        </button>
+                    </div>
+                    <div class="fr-modal__content">
+                        <h2 id="titre" class="fr-modal__title">
+                            <span class="fr-icon-info-line fr-icon--lg" aria-hidden="true"></span> Titre de la modale
+                        </h2>
+                        <ul id="info"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</dialog>
+</body>
+</html>
