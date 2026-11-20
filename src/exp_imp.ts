@@ -53,9 +53,9 @@ type ExpImpAttachmentData = {
 }
 
 type ExpImpUserParameters = {
-    "exportId"?: string;
-    "importId"?: string;
-    "output"?: Output;
+    "exportId"?: string
+    "importId"?: string
+    "output"?: Output
     getArchiveName?: () => string
     before?: (docApi: grist.GristDocAPI) => Promise<void>
     prepareArchive?: (archive: Archive, meta: ExpImpMeta, output: Output) => Promise<void>
@@ -64,9 +64,9 @@ type ExpImpUserParameters = {
 }
 
 type ExpImpParameters = {
-    "exportId": string;
-    "importId": string;
-    "output": Output;
+    "exportId": string
+    "importId": string
+    "output": Output
     getArchiveName: () => string
     before: (docApi: grist.GristDocAPI) => Promise<void>
     prepareArchive: (archive: Archive, meta: ExpImpMeta, output: Output) => Promise<void>
@@ -79,9 +79,9 @@ const COL_VERSION = "Version";
 const COL_TEMPLATE_ID = "TemplateId";
 
 interface Output {
-    begin(title: string, info?: string): void;
+    begin(title: string, info?: string): void
 
-    next(info: string): void;
+    next(info: string): void
 
     err(err: unknown): void
 
@@ -90,7 +90,7 @@ interface Output {
 
 class ConsoleOutput implements Output {
     begin(title: string, info?: string) {
-        console.info("> begin output")
+        console.info("> begin output");
         console.info(`title: ${title}`);
         if (info !== undefined) {
             this.next(info);
@@ -115,8 +115,8 @@ class ConsoleOutput implements Output {
 }
 
 class ArchiveCreator {
-    docApi: grist.GristDocAPI
-    output: ConsoleOutput
+    docApi: grist.GristDocAPI;
+    output: ConsoleOutput;
 
     constructor(docApi: grist.GristDocAPI, output: ConsoleOutput) {
         /*
@@ -135,11 +135,11 @@ class ArchiveCreator {
         console.info("Creating archive...");
         const writer = new ZipWriter({outputAs: "blob"});
 
-        this.output.next("Ajout des tables")
+        this.output.next("Ajout des tables");
         await this.#addTables(writer);
-        this.output.next("Ajout des PJ")
+        this.output.next("Ajout des PJ");
         await this.#addAttachments(writer);
-        this.output.next("Écriture du zip")
+        this.output.next("Écriture du zip");
         return await writer.close();
     }
 
@@ -222,11 +222,11 @@ class ArchiveCreator {
         }
     }
 
-    async #findColsIdsByTableId() {
+    async #findColsIdsByTableId(): Promise<Map<string, string[]>> {
         /*
          * @returns {Map} tableId -> colsId
          */
-        const colsIdsByTableId = new Map();
+        const colsIdsByTableId = new Map<string, string[]>();
         const gristColumns = await this.docApi.fetchTable("_grist_Tables_column");
         const gristTables = await this.docApi.fetchTable("_grist_Tables");
         gristColumns.parentId.forEach((parentId: grist.CellValue, index: number, _arr: grist.CellValue[]) => {
@@ -234,13 +234,13 @@ class ArchiveCreator {
                 const tableIndex = gristTables.id.findIndex((id: number) => id === (parentId as number));
                 const tableId = gristTables.tableId[tableIndex];
                 const colsIds = getOrInsert(colsIdsByTableId, tableId, []);
-                colsIds.push(gristColumns.colId[index]);
+                colsIds.push(gristColumns.colId[index] as string);
             }
         });
         return colsIdsByTableId;
     }
 
-    async #findAttachmentNameById() {
+    async #findAttachmentNameById(): Promise<Map<number, string>> {
         /*
          * @returns {Map} attachmentId -> attachment name
          */
@@ -268,7 +268,7 @@ class DefaultArchiveExporter {
         this.#download(zipContent, suggestedName);
     }
 
-    getArchiveName() {
+    getArchiveName(): string {
         let dateStr = new Date().toISOString();
         return `export_${dateStr}.zip`;
     }
@@ -293,10 +293,23 @@ class DefaultArchiveExporter {
     }
 }
 
+function tableToMeta(meta: grist.TableData | undefined): ExpImpMeta {
+    if (meta === undefined) {
+        throw new Error("Meta table not found");
+    }
+    if (!(COL_TEMPLATE_ID in meta && COL_VERSION in meta)) {
+        throw new Error("Meta table missing mandatory columns");
+    }
+    return Object.fromEntries(
+        Object.entries(meta)
+            .map(([key, values]) => [key, values[0]])
+    ) as ExpImpMeta;
+}
+
 class Archive {
-    tableById: Map<string, grist.TableData>
-    attachmentDataById: Map<number, ExpImpAttachmentData>
-    importOptions: ExpImpImportOptions
+    tableById: Map<string, grist.TableData>;
+    attachmentDataById: Map<number, ExpImpAttachmentData>;
+    importOptions: ExpImpImportOptions;
 
     constructor(tableById: Map<string, any>, attachmentDataById: Map<number, ExpImpAttachmentData>) {
         this.tableById = tableById;
@@ -310,33 +323,24 @@ class Archive {
         }
     }
 
-    get version(): string {
+    get Version(): string {
         return this.meta.Version;
     }
 
-    get templateId(): string {
+    get TemplateId(): string {
         return this.meta.TemplateId;
     }
 
     get meta(): ExpImpMeta {
         let meta = this.tableById.get(META_TABLE);
-        if (meta === undefined) {
-            throw new Error("Meta table not found");
-        }
-        if (!(COL_TEMPLATE_ID in meta && COL_VERSION in meta)) {
-            throw new Error("Meta table missing mandatory columns");
-        }
-        return Object.fromEntries(
-            Object.entries(meta)
-                .map(([key, values]) => [key, values[0]])
-        ) as ExpImpMeta;
+        return tableToMeta(meta);
     }
 
-    get tablesIds() {
+    get tablesIds(): IteratorObject<string> {
         return this.tableById.keys().filter((tableId) => tableId !== META_TABLE);
     }
 
-    tableEntries() {
+    tableEntries(): IteratorObject< [string, grist.TableData]> {
         return this.tableById.entries().filter(([tableId, _table], _tableIdx) => tableId !== META_TABLE);
     }
 
@@ -348,7 +352,7 @@ class Archive {
             return;
         }
         const rows = this.#tableToRows(table);
-        const newRows = rows.filter((row) => func(row))
+        const newRows = rows.filter((row) => func(row));
         const newTable = this.#rowsToTable(newRows);
         this.tableById.set(tableId, newTable);
     }
@@ -360,7 +364,7 @@ class Archive {
             return;
         }
         const rows = this.#tableToRows(table);
-        const newRows = rows.map((row) => func(row))
+        const newRows = rows.map((row) => func(row));
         const newTable = this.#rowsToTable(newRows);
         this.tableById.set(tableId, newTable);
     }
@@ -372,7 +376,7 @@ class Archive {
             return;
         }
 
-        const newTable: grist.TableData = { id: [] };
+        const newTable: grist.TableData = {id: []};
         const keys = Object.keys(table);
         keys.forEach((key) => {
             let newKey = newNameByOldName[key];
@@ -380,7 +384,7 @@ class Archive {
                 newKey = key;
             }
             newTable[newKey] = table[key];
-        })
+        });
         this.tableById.set(tableId, newTable);
     }
 
@@ -397,7 +401,7 @@ class Archive {
             if (!colNames.includes(key)) {
                 newTable[key] = table[key];
             }
-        })
+        });
         this.tableById.set(tableId, newTable);
     }
 
@@ -432,15 +436,15 @@ class Archive {
         let keys = Object.keys(table);
         const rows: grist.RowRecord[] = Array();
         table.id.forEach((_id: number, index: number, _arr: number[]) => {
-            const row = Object.fromEntries(keys.map((k) => [k, table[k][index]]))
+            const row = Object.fromEntries(keys.map((k) => [k, table[k][index]]));
             rows.push(row as grist.RowRecord);
-        })
+        });
         return rows;
     }
 
     #rowsToTable(rows: grist.RowRecord[]): grist.TableData {
-        console.assert(rows.length > 0)
-        const table: grist.TableData = {id: []}
+        console.assert(rows.length > 0);
+        const table: grist.TableData = {id: []};
         const keys = Object.keys(rows[0]);
         if (!("id" in keys)) {
             throw new Error(`key id not found in "${keys}"`);
@@ -452,20 +456,20 @@ class Archive {
             keys.forEach((key) => {
                 table[key].push(row[key]);
             });
-        })
+        });
         return table
     }
 }
 
 class ArchiveReader {
-    output: Output
+    output: Output;
 
     constructor(output: Output) {
         this.output = output;
     }
 
     async readFromEvent(event: Event): Promise<Archive | null> {
-        this.output.next("Lecture depuis la balise 'input'")
+        this.output.next("Lecture depuis la balise 'input'");
         console.log("Read...");
 
         const file = this.#getFile(event);
@@ -504,14 +508,14 @@ class ArchiveReader {
         return files[0];
     }
 
-    async readZip(zip: ZipRandomAccessReader) {
+    async readZip(zip: ZipRandomAccessReader): Promise<Archive> {
         const tableById = new Map<string, string>();
         const attachmentDataById = new Map<number, ExpImpAttachmentData>();
         for (const entry of zip.entries) {
             const path = entry.path;
             let arr = path.split("/");
             if (arr.length <= 1) {
-                console.error("Weird entry", path)
+                console.error("Weird entry", path);
                 continue;
             }
 
@@ -526,7 +530,7 @@ class ArchiveReader {
             } else if (type === "attachment" && arr.length === 3) {
                 const attachmentId = parseInt(arr[1]);
                 if (Number.isNaN(attachmentId)) {
-                    console.error("Weird entry", path)
+                    console.error("Weird entry", path);
                     continue;
                 }
                 const attachmentData = getOrInsert(attachmentDataById, attachmentId, {
@@ -556,7 +560,7 @@ class ArchiveReader {
         return new Archive(tableById, attachmentDataById);
     }
 
-    async #getJSONData(zip: ZipRandomAccessReader, path: string) {
+    async #getJSONData(zip: ZipRandomAccessReader, path: string): Promise<any> {
         /*
          * @param {Object} zip - the zip
          * @param {String} path - the path
@@ -582,13 +586,14 @@ class ArchiveReader {
 }
 
 class ArchiveImporterFactory {
-    async create(docApi: grist.GristDocAPI, parameters: ExpImpParameters) {
+    async create(docApi: grist.GristDocAPI, parameters: ExpImpParameters): Promise<ArchiveImporter> {
         const tokenInfo = await docApi.getAccessToken({readOnly: false});
         const colInfoByColIdByTableId = await this.findColInfoByColIdByTableId(docApi);
         return new ArchiveImporter(docApi, colInfoByColIdByTableId, tokenInfo, parameters);
     }
 
-    async findColInfoByColIdByTableId(docApi: grist.GristDocAPI) {
+    async findColInfoByColIdByTableId(
+        docApi: grist.GristDocAPI): Promise<Map<string, Map<string, GristColInfo>>> {
         /*
          * Analyse the current document.
          * @param {Object} docApi - the grist doc API
@@ -600,8 +605,8 @@ class ArchiveImporterFactory {
         gristColumns.parentId.forEach((parentId: grist.CellValue, index: number, _arr: grist.CellValue[]) => {
             const tableIndex = gristTables.id.findIndex((id: number) => id === (parentId as number));
             const tableId = gristTables.tableId[tableIndex];
-            const colTypeByColId = getOrInsert(colTypeByColIdByTableId, tableId, new Map());
-            const colId = gristColumns.colId[index] as number;
+            const colTypeByColId = getOrInsert(colTypeByColIdByTableId, tableId, new Map<string, GristColInfo>());
+            const colId = gristColumns.colId[index] as string;
             const colType = gristColumns.type[index] as string;
             const isFormula = gristColumns.isFormula[index] as boolean;
             const formula = gristColumns.formula[index] as string;
@@ -618,10 +623,10 @@ class ArchiveImporterFactory {
 }
 
 class ArchiveImporter {
-    docApi: grist.GristDocAPI
-    colInfoByColIdByTableId: Map<string, Map<string, GristColInfo>>
-    tokenInfo: grist.AccessTokenResult
-    parameters: ExpImpParameters
+    docApi: grist.GristDocAPI;
+    colInfoByColIdByTableId: Map<string, Map<string, GristColInfo>>;
+    tokenInfo: grist.AccessTokenResult;
+    parameters: ExpImpParameters;
 
     constructor(
         docApi: grist.GristDocAPI, colInfoByColIdByTableId: Map<string, Map<string, GristColInfo>>, tokenInfo: grist.AccessTokenResult, parameters: ExpImpParameters) {
@@ -636,8 +641,8 @@ class ArchiveImporter {
          * Basic function that simply import the data.
          */
         const output = this.parameters.output;
-        output.next(`Version de l'archive ${archive.templateId} v.${archive.version}`);
-        console.log("Importing...", archive.version);
+        output.next(`Version de l'archive ${archive.TemplateId} v.${archive.Version}`);
+        console.log("Importing...", archive.Version);
 
         output.next("Initialisation");
         await this.parameters.before(this.docApi);
@@ -650,16 +655,7 @@ class ArchiveImporter {
 
     async fetchMeta(): Promise<ExpImpMeta> {
         let meta = await this.docApi.fetchTable(META_TABLE);
-        if (meta === undefined) {
-            throw new Error("Meta table not found");
-        }
-        if (!(COL_TEMPLATE_ID in meta && COL_VERSION in meta)) {
-            throw new Error("Meta table missing mandatory columns");
-        }
-        return Object.fromEntries(
-            Object.entries(meta)
-                .map(([key, values]) => [key, values[0]])
-        ) as ExpImpMeta;
+        return tableToMeta(meta);
     }
 
     async #writeArchive(archive: Archive) {
@@ -667,9 +663,9 @@ class ArchiveImporter {
         output.next("Écriture des tables (sans les références)");
         const addActions = await this.#buildAddActions(archive);
         const result = await this.docApi.applyUserActions(addActions);
-        console.info(`Actions: ${addActions.length} tables added`)
+        console.info(`Actions: ${addActions.length} tables added`);
 
-        const newIdsByTableId = this.buildNewIdsByTableId(addActions, result.retValues as number[]);
+        const newIdsByTableId = this.buildNewIdsByTableId(addActions, result.retValues as number[][]);
         const newIdByOldIdByTableId = this.buildNewIdByOldIdByTableId(archive, newIdsByTableId);
         console.info(newIdByOldIdByTableId);
 
@@ -677,7 +673,7 @@ class ArchiveImporter {
         const updateRefsActions = await this.#buildUpdateRefsActions(
             archive, newIdsByTableId, newIdByOldIdByTableId);
         await this.docApi.applyUserActions(updateRefsActions);
-        console.info(`Actions: ${updateRefsActions.length} tables fixed`)
+        console.info(`Actions: ${updateRefsActions.length} tables fixed`);
 
         output.next("Écriture des colonnes formule d'initialisation");
         const updateTriggerActions = await this.#buildUpdateTriggerActions(
@@ -719,7 +715,7 @@ class ArchiveImporter {
 
             const records = await this.#buildRecords(archive, colInfoByColId, table);
             const values: grist.CellValue[] = Object.values(records)[0];
-            const nulls: (number| null)[] = Array(values.length).fill(null);
+            const nulls: (number | null)[] = Array(values.length).fill(null);
             addActions.push(["BulkAddRecord", tableId, nulls, records]);
         }
         console.log(addActions);
@@ -728,8 +724,8 @@ class ArchiveImporter {
 
 
     async #buildUpdateRefsActions(
-        archive: Archive, newIdsByTableId: Map<string, number[]>, newIdByOldIdByTableId: Map<string, Map<number, number>>) {
-        const updateActions = Array();
+        archive: Archive, newIdsByTableId: Map<string, number[]>, newIdByOldIdByTableId: Map<string, Map<number, number>>): Promise<grist.UserAction[]> {
+        const updateActions = Array<grist.UserAction>();
         const refListRegexp = new RegExp("^RefList:(.*)$");
         const refRegexp = new RegExp("^Ref:(.*)$");
         for (let [tableId, table] of archive.tableEntries()) {
@@ -743,11 +739,11 @@ class ArchiveImporter {
                 if (refListM !== null) {
                     const refTableId = refListM[1];
                     console.log("RefList", tableId, colId, "->", refTableId);
-                    const newIdByOldId = newIdByOldIdByTableId.get(refTableId)
+                    const newIdByOldId = newIdByOldIdByTableId.get(refTableId);
                     if (newIdByOldId === undefined) {
                         continue;
                     }
-                    const newValues = [];
+                    const newValues = Array<GristListValueOrNull>();
                     let col = table[colId] as GristListValueOrNull[];
                     for (let arr of col) {
                         if (arr === null || arr === undefined) {
@@ -772,7 +768,7 @@ class ArchiveImporter {
                     if (refM !== null) {
                         const refTableId = refM[1];
                         console.log("Ref", tableId, colId, "->", refTableId);
-                        const newIdByOldId = newIdByOldIdByTableId.get(refTableId)
+                        const newIdByOldId = newIdByOldIdByTableId.get(refTableId);
                         if (newIdByOldId === undefined) {
                             continue;
                         }
@@ -796,18 +792,18 @@ class ArchiveImporter {
                 updateActions.push(["BulkUpdateRecord", tableId, newIds, records]) // for each col
             }
         }
-        console.log(updateActions)
+        console.log(updateActions);
         return updateActions;
     }
 
-    buildNewIdByOldIdByTableId(archive: Archive, newIdsByTableId: Map<string, string[]>) {
-        const newIdByOldIdByTableId = new Map();
+    buildNewIdByOldIdByTableId(archive: Archive, newIdsByTableId: Map<string, number[]>): Map<string, Map<number, number>> {
+        const newIdByOldIdByTableId = new Map<string, Map<number, number>>();
         for (let [tableId, table] of archive.tableEntries()) {
             const newIds = newIdsByTableId.get(tableId);
             if (newIds === undefined) {
                 continue;
             }
-            const newIdByOldId = getOrInsert(newIdByOldIdByTableId, tableId, new Map<string, string>())
+            const newIdByOldId = getOrInsert(newIdByOldIdByTableId, tableId, new Map<number, number>());
             table.id.forEach((id, index) => {
                 newIdByOldId.set(id, newIds[index]);
             });
@@ -816,20 +812,21 @@ class ArchiveImporter {
         return newIdByOldIdByTableId;
     }
 
-    buildNewIdsByTableId(actions: grist.UserAction[], results: number[]) {
-        const newIdsByTableId = new Map();
+    buildNewIdsByTableId(actions: grist.UserAction[], results: number[][]): Map<string, number[]> {
+        const newIdsByTableId = new Map<string, number[]>();
         actions.forEach((action, index) => {
-            const tableId = action[1];
-            const newIds = results[index];
+            const tableId = action[1] as string;
+            const newIds = results[index] as number[];
             newIdsByTableId.set(tableId, newIds);
         });
         return newIdsByTableId;
     }
 
-    async #buildRecords(archive: Archive, colInfoByColId: Map<string, GristColInfo>, table: grist.TableData) {
+    async #buildRecords(
+        archive: Archive, colInfoByColId: Map<string, GristColInfo>, table: grist.TableData): Promise<grist.TableDataWithoutId> {
         const attachmentDataById = archive.attachmentDataById;
         const options = archive.importOptions;
-        const records: grist.TableDataWithoutId = {}
+        const records: grist.TableDataWithoutId = {};
         for (let [colId, colInfo] of colInfoByColId) {
             const values = table[colId];
             if (values === undefined) {
@@ -849,10 +846,10 @@ class ArchiveImporter {
                 }
             }
             if (colInfo.colType.startsWith("Ref:") || colInfo.colType.startsWith("RefList:")) {
-                console.info(`First pass: ignore ref col: ${colId} (${colInfo.colType})`)
+                console.info(`First pass: ignore ref col: ${colId} (${colInfo.colType})`);
                 continue;
             } else if (colInfo.hasTriggerFormula) {
-                console.info(`First pass: ignore col with trigger formula: ${colId} (${colInfo.colType})`)
+                console.info(`First pass: ignore col with trigger formula: ${colId} (${colInfo.colType})`);
                 continue;
             }
 
@@ -867,11 +864,11 @@ class ArchiveImporter {
         return records;
     }
 
-    async #buildUpdateTriggerActions(archive: Archive, newIdsByTableId: Map<string, string[]>) {
+    async #buildUpdateTriggerActions(archive: Archive, newIdsByTableId: Map<string, number[]>): Promise<grist.UserAction[]> {
         const newIdByOldIdByTableId = this.buildNewIdByOldIdByTableId(archive, newIdsByTableId);
         console.info(newIdByOldIdByTableId);
 
-        const updateActions = Array();
+        const updateActions = Array<grist.UserAction>();
         for (let [tableId, table] of archive.tableEntries()) {
             let colInfoByColId = this.colInfoByColIdByTableId.get(tableId);
             if (colInfoByColId === undefined) {
@@ -887,11 +884,12 @@ class ArchiveImporter {
                 updateActions.push(["BulkUpdateRecord", tableId, newIdsByTableId.get(tableId), records]) // for each col
             }
         }
-        console.log(updateActions)
+        console.log(updateActions);
         return updateActions;
     }
 
-    async #uploadAttachments(values: GristListValueOrNull[], attachmentDataById: Map<number, ExpImpAttachmentData>) {
+    async #uploadAttachments(
+        values: GristListValueOrNull[], attachmentDataById: Map<number, ExpImpAttachmentData>): Promise<GristListValueOrNull[]> {
         const newValues = Array<GristListValueOrNull>();
         for (let arr of values) {
             if (arr === null) {
@@ -919,7 +917,7 @@ class ArchiveImporter {
         return newValues;
     }
 
-    async #uploadAttachment(data: ExpImpAttachmentData) {
+    async #uploadAttachment(data: ExpImpAttachmentData): Promise<number> {
         /*
          * @param {Object} tokenInfo - the grist token info
          * @param {Map} data - the attachment data
@@ -943,17 +941,17 @@ class ArchiveImporter {
             return -1;
         }
 
-        console.log(`Upload ${attachmentName}`)
+        console.log(`Upload ${attachmentName}`);
         const result = await response.json();
-        return result[0];
+        return result[0] as number;
     }
 
-    async getCurTemplateId() {
+    async getCurTemplateId(): Promise<string> {
         const metaTable = await this.docApi.fetchTable(META_TABLE);
-        return metaTable[COL_TEMPLATE_ID][0];
+        return metaTable[COL_TEMPLATE_ID][0] as string;
     }
 
-    async getCurVersion() {
+    async getCurVersion(): Promise<string> {
         const metaTable = await this.docApi.fetchTable(META_TABLE);
         return metaTable[COL_VERSION][0] as string;
     }
@@ -970,11 +968,11 @@ async function main(userParameters: ExpImpUserParameters) {
     const parameters: ExpImpParameters = {
         ...defaultExpImpParameters,
         ...userParameters,
-    }
+    };
 
     async function exportArchive(_event: Event) {
         const output = parameters.output;
-        output.begin("Export de l'archive")
+        output.begin("Export de l'archive");
         try {
             const archiveCreator = new ArchiveCreator(docApi, output);
             const zipContent = await archiveCreator.create();
@@ -990,7 +988,7 @@ async function main(userParameters: ExpImpUserParameters) {
 
     async function importArchive(event: Event) {
         const output = parameters.output;
-        output.begin("Import de l'archive")
+        output.begin("Import de l'archive");
         try {
             const reader = new ArchiveReader(output);
             const archive = await reader.readFromEvent(event);
@@ -1022,23 +1020,23 @@ async function main(userParameters: ExpImpUserParameters) {
     }
 }
 
-function defaultGetArchiveName() {
+function defaultGetArchiveName(): string {
     let dateStr = new Date().toISOString();
     return `export_${dateStr}.zip`;
 }
 
-async function defaultBefore(docApi: grist.GristDocAPI) {
+async function defaultBefore(_docApi: grist.GristDocAPI) {
 }
 
 async function defaultPrepareArchive(archive: Archive, meta: ExpImpMeta, output: Output) {
     // just check id and version...
-    if (archive.templateId !== meta.TemplateId || archive.version > meta.Version) {
-        output.begin("Erreur", `Impossible d'importer un outil de type ${archive.templateId} v.${archive.version}`);
-        throw Error(`Wrong archive ${archive.templateId}`);
+    if (archive.TemplateId !== meta.TemplateId || archive.Version > meta.Version) {
+        output.begin("Erreur", `Impossible d'importer un outil de type ${archive.TemplateId} v.${archive.Version}`);
+        throw Error(`Wrong archive ${archive.TemplateId}`);
     }
 }
 
-async function defaultAfter(docApi: grist.GristDocAPI) {
+async function defaultAfter(_docApi: grist.GristDocAPI) {
 }
 
 const defaultImportOptions: ExpImpImportOptions = {
@@ -1046,7 +1044,7 @@ const defaultImportOptions: ExpImpImportOptions = {
     "ignoreExtraTables": true, // ignore tables from the archive that are not in the document
     "ignoreMissingCols": true, // ignore cols from the document that are not in the archive
     "ignoreFormulas": true, // // ignore the formula cols from the archive
-}
+};
 
 const defaultExpImpParameters: ExpImpParameters = {
     "exportId": "export",
@@ -1057,7 +1055,7 @@ const defaultExpImpParameters: ExpImpParameters = {
     "prepareArchive": defaultPrepareArchive,
     "after": defaultAfter,
     "options": defaultImportOptions,
-}
+};
 
 export function register(parameters: ExpImpUserParameters) {
     document.addEventListener("DOMContentLoaded", (_event) => main(parameters))
