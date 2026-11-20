@@ -725,6 +725,8 @@ class ArchiveImporter {
 
     async #buildUpdateRefsActions(
         archive: Archive, newIdsByTableId: Map<string, number[]>, newIdByOldIdByTableId: Map<string, Map<number, number>>): Promise<grist.UserAction[]> {
+        const options = archive.importOptions;
+
         const updateActions = Array<grist.UserAction>();
         const refListRegexp = new RegExp("^RefList:(.*)$");
         const refRegexp = new RegExp("^Ref:(.*)$");
@@ -735,6 +737,14 @@ class ArchiveImporter {
             }
             const records: grist.TableDataWithoutId = {};
             for (let [colId, colInfo] of colInfoByColId.entries()) {
+                if (colInfo.isFormula) {
+                    if (options.ignoreFormulas) {
+                        console.warn(`Ignore formula col ${colId} from the archive`);
+                        continue;
+                    } else {
+                        throw new Error();
+                    }
+                }
                 const refListM = colInfo.colType.match(refListRegexp);
                 if (refListM !== null) {
                     const refTableId = refListM[1];
@@ -908,7 +918,7 @@ class ArchiveImporter {
                     if (newId > 0) {
                         newArr.push(newId);
                     } else {
-                        console.error(attachmentData.name);
+                        console.error(`Can't upload ${attachmentData.name}`);
                     }
                 }
                 newValues.push(newArr)
@@ -963,7 +973,7 @@ grist.ready({
 
 async function main(userParameters: ExpImpUserParameters) {
     const docApi: grist.GristDocAPI = grist.docApi;
-    console.error(userParameters);
+    console.info("Parameters", userParameters);
 
     const parameters: ExpImpParameters = {
         ...defaultExpImpParameters,
