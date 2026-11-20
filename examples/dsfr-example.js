@@ -18,6 +18,12 @@ class DocumentOutput {
         }
     }
 
+    err(err) {
+        if (err !== undefined) {
+            this.ulElement.innerHTML += `<li style="color: darkred;">ERREUR: ${err}</li>`;
+        }
+    }
+
     end() {}
 }
 

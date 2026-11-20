@@ -83,6 +83,8 @@ interface Output {
 
     next(info: string): void;
 
+    err(err: unknown): void
+
     end(): void;
 }
 
@@ -98,6 +100,12 @@ class ConsoleOutput implements Output {
     next(info: string) {
         if (info !== undefined) {
             console.info(`* info: ${info}`);
+        }
+    }
+
+    err(err: unknown) {
+        if (err !== undefined) {
+            console.error("> err: ${err}`")
         }
     }
 
@@ -450,7 +458,7 @@ class Archive {
 }
 
 class ArchiveReader {
-    output: any
+    output: Output
 
     constructor(output: Output) {
         this.output = output;
@@ -568,7 +576,7 @@ class ArchiveReader {
 
     importErr(error: any) {
         /* Error when reading ZIP file */
-        window.alert("Can't read zip file");
+        this.output.err(`Can't read zip file ${error}`);
         console.error("Can't read zip file", error);
     }
 }
@@ -966,30 +974,38 @@ async function main(userParameters: ExpImpUserParameters) {
 
     async function exportArchive(_event: Event) {
         const output = parameters.output;
-        console.error("OUT**");
-        console.error(output);
         output.begin("Export de l'archive")
-        const archiveCreator = new ArchiveCreator(docApi, output);
-        const zipContent = await archiveCreator.create();
-        const archiveExporter = new DefaultArchiveExporter(output);
-        await archiveExporter.exportArchive(zipContent);
-        output.next("Terminé")
-        output.end()
+        try {
+            const archiveCreator = new ArchiveCreator(docApi, output);
+            const zipContent = await archiveCreator.create();
+            const archiveExporter = new DefaultArchiveExporter(output);
+            await archiveExporter.exportArchive(zipContent);
+            output.next("Terminé")
+        } catch (error) {
+            output.err(error);
+        } finally {
+            output.end()
+        }
     }
 
     async function importArchive(event: Event) {
         const output = parameters.output;
         output.begin("Import de l'archive")
-        const reader = new ArchiveReader(output);
-        const archive = await reader.readFromEvent(event);
-        if (archive === null) {
-            console.error(`Can't load archive`);
-            return
+        try {
+            const reader = new ArchiveReader(output);
+            const archive = await reader.readFromEvent(event);
+            if (archive === null) {
+                console.error(`Can't load archive`);
+                return
+            }
+            const archiveImporter = await new ArchiveImporterFactory().create(docApi, parameters);
+            await archiveImporter.importArchive(archive);
+            output.next("Terminé")
+        } catch (error) {
+            output.err(error);
+        } finally {
+            output.end()
         }
-        const archiveImporter = await new ArchiveImporterFactory().create(docApi, parameters);
-        await archiveImporter.importArchive(archive);
-        output.next("Terminé")
-        output.end()
     }
 
     const exportElement = document.getElementById(parameters.exportId);
