@@ -13,7 +13,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-import {ZipWriter, openZip, ZipRandomAccessReader} from "web-jszipp";
+import {openZip, ZipRandomAccessReader, ZipWriter} from "web-jszipp";
 
 function getOrInsert<K, V>(map: Map<K, V>, key: K, value: V): V {
     if (map.has(key)) {
@@ -33,13 +33,6 @@ type GristColInfo = {
 type GristListValue = [string, ...number[]];
 type GristListValueOrNull = GristListValue | null;
 
-type ExpImpImportOptions = {
-    ignoreMeta: boolean
-    ignoreExtraTables: boolean
-    ignoreMissingCols: boolean
-    ignoreFormulas: boolean
-}
-
 type ExpImpMeta = {
     TemplateId: string
     Version: string
@@ -52,6 +45,13 @@ type ExpImpAttachmentData = {
     bytes: any
 }
 
+type ExpImpImportOptions = {
+    ignoreMeta: boolean
+    ignoreExtraTables: boolean
+    ignoreMissingCols: boolean
+    ignoreFormulas: boolean
+}
+
 type ExpImpUserParameters = {
     "exportId"?: string
     "importId"?: string
@@ -60,7 +60,7 @@ type ExpImpUserParameters = {
     before?: (docApi: grist.GristDocAPI) => Promise<void>
     prepareArchive?: (archive: Archive, meta: ExpImpMeta, output: Output) => Promise<void>
     after?: (docApi: grist.GristDocAPI) => Promise<void>
-    options?: ExpImpImportOptions
+    importOptions?: Partial<ExpImpImportOptions>
 }
 
 type ExpImpParameters = {
@@ -332,7 +332,7 @@ class Archive {
         return this.tableById.keys().filter((tableId) => tableId !== META_TABLE);
     }
 
-    tableEntries(): IteratorObject< [string, grist.TableData]> {
+    tableEntries(): IteratorObject<[string, grist.TableData]> {
         return this.tableById.entries().filter(([tableId, _table], _tableIdx) => tableId !== META_TABLE);
     }
 
@@ -867,9 +867,6 @@ class ArchiveImporter {
     }
 
     async #buildUpdateTriggerActions(archive: Archive, newIdsByTableId: Map<string, number[]>): Promise<grist.UserAction[]> {
-        const newIdByOldIdByTableId = this.buildNewIdByOldIdByTableId(archive, newIdsByTableId);
-        console.info(newIdByOldIdByTableId);
-
         const updateActions = Array<grist.UserAction>();
         for (let [tableId, table] of archive.tableEntries()) {
             let colInfoByColId = this.colInfoByColIdByTableId.get(tableId);
@@ -965,12 +962,22 @@ grist.ready({
 
 async function main(userParameters: ExpImpUserParameters) {
     const docApi: grist.GristDocAPI = grist.docApi;
-    console.info("Parameters", userParameters);
+    console.info("User parameters", userParameters);
 
-    const parameters: ExpImpParameters = {
-        ...defaultExpImpParameters,
-        ...userParameters,
-    };
+    function fixParameters(userParameters: ExpImpUserParameters): ExpImpParameters {
+        const importOptions: ExpImpImportOptions = {
+            ...defaultExpImpParameters.importOptions,
+            ...(userParameters.importOptions ?? {}),
+        };
+
+        return {
+            ...defaultExpImpParameters,
+            ...userParameters,
+            "importOptions": importOptions,
+        };
+    }
+
+    const parameters = fixParameters(userParameters);
 
     async function exportArchive(_event: Event) {
         const output = parameters.output;
@@ -983,6 +990,7 @@ async function main(userParameters: ExpImpUserParameters) {
             output.next("Terminé")
         } catch (error) {
             output.err(error);
+            console.error(error);
         } finally {
             output.end()
         }
@@ -1003,6 +1011,7 @@ async function main(userParameters: ExpImpUserParameters) {
             output.next("Terminé")
         } catch (error) {
             output.err(error);
+            console.error(error);
         } finally {
             output.end()
         }
@@ -1045,7 +1054,7 @@ const defaultImportOptions: ExpImpImportOptions = {
     "ignoreMeta": true, // ignore the Meta table from the archive
     "ignoreExtraTables": true, // ignore tables from the archive that are not in the document
     "ignoreMissingCols": true, // ignore cols from the document that are not in the archive
-    "ignoreFormulas": true, // // ignore the formula cols from the archive
+    "ignoreFormulas": true, // ignore the formula cols from the archive
 };
 
 const defaultExpImpParameters: ExpImpParameters = {
