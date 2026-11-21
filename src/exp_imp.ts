@@ -309,10 +309,12 @@ function tableToMeta(meta: grist.TableData | undefined): ExpImpMeta {
 class Archive {
     tableById: Map<string, grist.TableData>;
     attachmentDataById: Map<number, ExpImpAttachmentData>;
+    tablesIdsToOverwrite: Array<string>;
 
     constructor(tableById: Map<string, any>, attachmentDataById: Map<number, ExpImpAttachmentData>) {
         this.tableById = tableById;
         this.attachmentDataById = attachmentDataById;
+        this.tablesIdsToOverwrite = [];
     }
 
     get Version(): string {
@@ -420,6 +422,10 @@ class Archive {
         }
 
         this.tableById.set(newTableId, structuredClone(table));
+    }
+
+    forceOverwrite(...tablesIds: string[]) {
+        this.tablesIdsToOverwrite.push(...tablesIds);
     }
 
     // end user funcs
@@ -614,6 +620,9 @@ class ArchiveImporterFactory {
     }
 }
 
+const REF_LIST_REGEXP = new RegExp("^RefList:(.*)$");
+const REF_REGEXP = new RegExp("^Ref:(.*)$");
+
 class ArchiveImporter {
     docApi: grist.GristDocAPI;
     colInfoByColIdByTableId: Map<string, Map<string, GristColInfo>>;
@@ -652,6 +661,8 @@ class ArchiveImporter {
 
     async #writeArchive(archive: Archive) {
         const output = this.parameters.output;
+        output.next("Effacement des tables à écraser");
+        await this.#removeTablesToOverwrite(archive.tablesIdsToOverwrite);
         output.next("Écriture des tables (sans les références)");
         const addActions = await this.#buildAddActions(archive);
         const result = await this.docApi.applyUserActions(addActions);
@@ -672,6 +683,69 @@ class ArchiveImporter {
             archive, newIdsByTableId);
         await this.docApi.applyUserActions(updateTriggerActions);
         console.info(`Trigger formulas: ${updateTriggerActions.length} tables fixed`)
+    }
+
+    async #removeTablesToOverwrite(tablesIdsToOverwrite: string[]) {
+        // we're looking for every tableId that has a dependent table out of
+        // tablesIdsToOverwrite
+        // usingId has a ref to usedId
+        const usingIdsByUsedId = await this.#findUsingIdsByUsedId();
+        console.error(usingIdsByUsedId);
+        const orphanUsingIds = this.#findOrphanUsingIds(["AGENTS", "C_NIVEAUX"], usingIdsByUsedId);
+
+        if (orphanUsingIds.size > 0) {
+            const text = orphanUsingIds.values().map(([usingId, usedId], _index) => `${usingId} -> ${usedId}`).toArray().join(", ");
+            this.parameters.output.err(`Les dépendances suivantes ont été identifiées : ${text}. Utilisez 'table.lookupOne()' pour des dépendances faibles.`);
+            console.error("Dependencies", text);
+        }
+
+        const truncateUserActions = Array<grist.UserAction>();
+        for (let tableId of tablesIdsToOverwrite) {
+            const table = await grist.docApi.fetchTable(tableId);
+            truncateUserActions.push(
+                        ["BulkRemoveRecord", tableId, table.id]);
+        }
+        await grist.docApi.applyUserActions(truncateUserActions);
+    }
+
+    #findOrphanUsingIds(tablesIdsToOverwrite: string[], usingIdsByUsedId: Map<string, Set<string>>): Set<[string, string]> {
+        const willBeDeletedIds = new Set<string>(tablesIdsToOverwrite);
+        const orphanUsingIds = new Set<[string, string]>();
+
+        for (let possibleUsedId of tablesIdsToOverwrite) {
+            const usingIds = usingIdsByUsedId.get(possibleUsedId);
+            if (usingIds === undefined) {
+                continue;
+            }
+
+            for (const usingId of usingIds) {
+                if (!willBeDeletedIds.has(usingId)) {
+                    orphanUsingIds.add([usingId, possibleUsedId]);
+                }
+            }
+        }
+        return orphanUsingIds;
+    }
+
+    async #findUsingIdsByUsedId(): Promise<Map<string, Set<string>>> {
+        const usingIdsByUsedId = new Map<string, Set<string>>();
+
+        for (let [tableId, colInfoByColId] of this.colInfoByColIdByTableId.entries()) {
+            for (let [colId, colInfo] of colInfoByColId.entries()) {
+                const refListM = colInfo.colType.match(REF_LIST_REGEXP);
+                if (refListM !== null) {
+                    const refTableId = refListM[1];
+                    getOrInsert(usingIdsByUsedId, refTableId, new Set()).add(tableId);
+                    continue;
+                }
+                const refM = colInfo.colType.match(REF_REGEXP);
+                if (refM !== null) {
+                    const refTableId = refM[1];
+                    getOrInsert(usingIdsByUsedId, refTableId, new Set()).add(tableId);
+                }
+            }
+        }
+        return usingIdsByUsedId;
     }
 
     async #buildAddActions(archive: Archive): Promise<grist.UserAction[]> {
@@ -720,8 +794,6 @@ class ArchiveImporter {
         const options = this.parameters.importOptions;
 
         const updateActions = Array<grist.UserAction>();
-        const refListRegexp = new RegExp("^RefList:(.*)$");
-        const refRegexp = new RegExp("^Ref:(.*)$");
         for (let [tableId, table] of archive.tableEntries()) {
             let colInfoByColId = this.colInfoByColIdByTableId.get(tableId);
             if (colInfoByColId === undefined) {
@@ -737,7 +809,7 @@ class ArchiveImporter {
                         throw new Error();
                     }
                 }
-                const refListM = colInfo.colType.match(refListRegexp);
+                const refListM = colInfo.colType.match(REF_LIST_REGEXP);
                 if (refListM !== null) {
                     const refTableId = refListM[1];
                     console.log("RefList", tableId, colId, "->", refTableId);
@@ -766,7 +838,7 @@ class ArchiveImporter {
                     }
                     records[colId] = newValues
                 } else {
-                    const refM = colInfo.colType.match(refRegexp);
+                    const refM = colInfo.colType.match(REF_REGEXP);
                     if (refM !== null) {
                         const refTableId = refM[1];
                         console.log("Ref", tableId, colId, "->", refTableId);
