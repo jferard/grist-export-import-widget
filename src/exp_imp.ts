@@ -53,9 +53,9 @@ type ExpImpImportOptions = {
 }
 
 type ExpImpUserParameters = {
-    "exportId"?: string
-    "importId"?: string
-    "output"?: Output
+    exportId?: string
+    importId?: string
+    output?: Output
     getArchiveName?: () => string
     before?: (docApi: grist.GristDocAPI) => Promise<void>
     prepareArchive?: (archive: Archive, meta: ExpImpMeta, output: Output) => Promise<void>
@@ -64,9 +64,9 @@ type ExpImpUserParameters = {
 }
 
 type ExpImpParameters = {
-    "exportId": string
-    "importId": string
-    "output": Output
+    exportId: string
+    importId: string
+    output: Output
     getArchiveName: () => string
     before: (docApi: grist.GristDocAPI) => Promise<void>
     prepareArchive: (archive: Archive, meta: ExpImpMeta, output: Output) => Promise<void>

@@ -26,7 +26,7 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "npm run typecheck && esbuild src/exp_imp.ts --bundle --format=iife --global-name=expimp --sourcemap --outfile=dist/exp_imp.js"
+    "build": "npm run typecheck && esbuild src/exp_imp.ts --bundle --minify --format=iife --global-name=expimp --sourcemap --outfile=dist/exp_imp.js"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",

@@ -104,6 +104,8 @@ def build_pages(pages_path: Path):
 
     for p in (CUR_PATH / "dist").glob("*.js"):
         shutil.copyfile(p, pages_path / p.name)
+    for p in (CUR_PATH / "dist").glob("*.js.map"):
+        shutil.copyfile(p, pages_path / p.name)
 
 
 if __name__ == "__main__":

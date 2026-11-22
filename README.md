@@ -69,9 +69,33 @@ The exports data in a ZIP archive:
 
 #### JavaScript code
 
-You may extend the `DefaultArchiveExporter` and provide a 
-`getArchiveName` method to provide a more convenient name to the
-export.
+You have to register your parameters. If you register nothing, default behavior will apply.
+
+```
+expimp.register({});
+```
+
+The parameters are:
+
+```typescript
+type ExpImpImportOptions = {
+    ignoreMeta: boolean
+    ignoreExtraTables: boolean
+    ignoreMissingCols: boolean
+    ignoreFormulas: boolean
+}
+
+type ExpImpUserParameters = {
+    exportId?: string
+    importId?: string
+    output?: Output
+    getArchiveName?: () => string
+    before?: (docApi: grist.GristDocAPI) => Promise&lt;void&gt;
+    prepareArchive?: (archive: Archive, meta: ExpImpMeta, output: Output) => Promise&lt;void&gt;
+    after?: (docApi: grist.GristDocAPI) => Promise&lt;void&gt;
+    importOptions?: Partial&lt;ExpImpImportOptions&gt;
+}
+```
 
 ### The import
 
