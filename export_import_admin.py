@@ -107,10 +107,10 @@ def build_pages(pages_path: Path):
     for p in (CUR_PATH / "dist").glob("*.js.map"):
         shutil.copyfile(p, pages_path / p.name)
 
-    pages_locales_path = pages_path / "locales"
-    pages_locales_path.mkdir(exist_ok=True)
-    for p in (CUR_PATH / "src/locales").glob("*.json"):
-        shutil.copyfile(p, pages_locales_path / p.name)
+#    pages_locales_path = pages_path / "locales"
+#    pages_locales_path.mkdir(exist_ok=True)
+#    for p in (CUR_PATH / "src/locales").glob("*.json"):
+#        shutil.copyfile(p, pages_locales_path / p.name)
 
 
 if __name__ == "__main__":

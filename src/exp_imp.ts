@@ -708,7 +708,7 @@ class ArchiveImporter {
         const t = this.parameters.translate;
 
         const usingIdsByUsedId = await this.#findUsingIdsByUsedId();
-        const orphanUsingIds = this.#findOrphanUsingIds(["AGENTS", "C_NIVEAUX"], usingIdsByUsedId);
+        const orphanUsingIds = this.#findOrphanUsingIds(tablesIdsToOverwrite, usingIdsByUsedId);
 
         if (orphanUsingIds.size > 0) {
             const text = orphanUsingIds.values().map(([usingId, usedId], _index) => `${usingId} -> ${usedId}`).toArray().join(", ");
