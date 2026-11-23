@@ -50,7 +50,6 @@ type ExpImpImportOptions = {
     ignoreExtraTables: boolean
     ignoreMissingCols: boolean
     ignoreFormulas: boolean
-    locale: string
 }
 
 type ExpImpUserParameters = {
@@ -62,6 +61,7 @@ type ExpImpUserParameters = {
     prepareArchive?: (archive: Archive, meta: ExpImpMeta, output: Output) => Promise<void>
     after?: (docApi: grist.GristDocAPI) => Promise<void>
     importOptions?: Partial<ExpImpImportOptions>
+    locale: string
 }
 
 type ExpImpParameters = {
@@ -1050,27 +1050,20 @@ grist.ready({
     requiredAccess: 'full',
 });
 
-async function main(userParameters: ExpImpUserParameters) {
-    const docApi: grist.GristDocAPI = grist.docApi;
-    console.info("GrEI: User parameters", userParameters);
+async function fixParameters(userParameters: ExpImpUserParameters): Promise<ExpImpParameters> {
+    const importOptions: ExpImpImportOptions = {
+        ...defaultExpImpParameters.importOptions,
+        ...(userParameters.importOptions ?? {}),
+    };
 
-    function fixParameters(userParameters: ExpImpUserParameters): ExpImpParameters {
-        const importOptions: ExpImpImportOptions = {
-            ...defaultExpImpParameters.importOptions,
-            ...(userParameters.importOptions ?? {}),
-        };
-
-        return {
-            ...defaultExpImpParameters,
-            ...userParameters,
-            "importOptions": importOptions,
-        };
-    }
-
-    const parameters = fixParameters(userParameters);
+    const parameters = {
+        ...defaultExpImpParameters,
+        ...userParameters,
+        "importOptions": importOptions,
+    };
 
     try {
-        let locale = parameters.importOptions.locale;
+        let locale = userParameters.locale;
         // sanitize, but you won't hack yourself
         locale = locale.replace(/[^\w-]+/g, "");
         const lang = await import(`./locales/${locale}.json`) as { [key: string]: string };
@@ -1089,8 +1082,17 @@ async function main(userParameters: ExpImpUserParameters) {
 
         parameters.translate = translate;
     } catch (e) {
-        console.error(`GrEI: Locale ${parameters.importOptions.locale} not found: ${e}`);
+        console.error(`GrEI: Locale ${userParameters.locale} not found: ${e}`);
     }
+    return parameters;
+}
+
+
+async function main(userParameters: ExpImpUserParameters) {
+    const docApi: grist.GristDocAPI = grist.docApi;
+    console.info("GrEI: User parameters", userParameters);
+
+    const parameters = await fixParameters(userParameters);
 
     async function exportArchive(_event: Event) {
         const output = parameters.output;
@@ -1174,7 +1176,6 @@ const defaultImportOptions: ExpImpImportOptions = {
     ignoreExtraTables: true, // ignore tables from the archive that are not in the document
     ignoreMissingCols: true, // ignore cols from the document that are not in the archive
     ignoreFormulas: true, // ignore the formula cols from the archive
-    locale: "en",
 };
 
 const defaultExpImpParameters: ExpImpParameters = {
