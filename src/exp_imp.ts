@@ -60,6 +60,7 @@ type ExpImpUserParameters = {
     before?: (docApi: grist.GristDocAPI) => Promise<void>
     prepareArchive?: (archive: Archive, meta: ExpImpMeta, output: Output) => Promise<void>
     after?: (docApi: grist.GristDocAPI) => Promise<void>
+    importErr?: (error: any, parameters: ExpImpParameters) => void,
     importOptions?: Partial<ExpImpImportOptions>
     locale: string
 }
@@ -72,6 +73,7 @@ type ExpImpParameters = {
     before: (docApi: grist.GristDocAPI) => Promise<void>
     prepareArchive: (archive: Archive, meta: ExpImpMeta, output: Output) => Promise<void>
     after: (docApi: grist.GristDocAPI) => Promise<void>
+    importErr: (error: any, parameters: ExpImpParameters) => void,
     importOptions: ExpImpImportOptions
     translate: (key: string, vars?: any) => string;
 }
@@ -492,7 +494,7 @@ class ArchiveReader {
             });
             return await this.readZip(zip);
         } catch (error) {
-            this.importErr(error);
+            this.parameters.importErr(error, this.parameters);
             return null;
         }
     }
@@ -582,15 +584,6 @@ class ArchiveReader {
             console.error("GrEI: Bad JSON data", e);
             return null;
         }
-    }
-
-    importErr(error: any) {
-        /* Error when reading ZIP file */
-        const output = this.parameters.output;
-        const t = this.parameters.translate;
-
-        output.err(t("Can't read ZIP", {error: error}));
-        console.error("GrEI: Can't read zip file", error);
     }
 }
 
@@ -1164,6 +1157,15 @@ async function defaultPrepareArchive(archive: Archive, meta: ExpImpMeta, output:
     }
 }
 
+function defaultImportErr(error: any, parameters: ExpImpParameters) {
+    /* Error when reading ZIP file */
+    const output = parameters.output;
+    const t = parameters.translate;
+
+    output.err(t("Can't read ZIP", {error: error}));
+    console.error("GrEI: Can't read zip file", error);
+}
+
 async function defaultAfter(_docApi: grist.GristDocAPI) {
 }
 
@@ -1186,6 +1188,7 @@ const defaultExpImpParameters: ExpImpParameters = {
     before: defaultBefore,
     prepareArchive: defaultPrepareArchive,
     after: defaultAfter,
+    importErr: defaultImportErr,
     importOptions: defaultImportOptions,
     translate: defaultTranslate,
 };
