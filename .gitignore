@@ -1,6 +1,7 @@
 .idea
 dist
 node_modules
+docs-gen
 
 cwb.diff
 package-lock.json
