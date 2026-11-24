@@ -47,4 +47,5 @@ expimp.register({
     "output": new DocumentOutput(window.document),
     "getArchiveName": getArchiveName,
     "prepareArchive": prepareArchive,
+    "locale": "fr"
 });
